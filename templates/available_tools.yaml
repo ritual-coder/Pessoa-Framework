@@ -1,0 +1,15 @@
+# Available Capability Set
+
+## Authorized MCP Tools
+# Add the exact tool names available to this specific persona
+enabled_tools:
+  - fetch_analysis_data
+  - list_heteronyms
+  - select_heteronym
+  - get_active_identity
+  - [Example: post_tweet_to_x]
+  - [Example: fetch_market_data]
+
+## Tool Governance
+- **Access Level**: [e.g., Restricted to Mission-Specific Tools]
+- **Validation Rule**: Consult `operational_rules.md` before calling any of the above.

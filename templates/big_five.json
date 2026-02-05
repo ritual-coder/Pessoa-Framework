@@ -1,0 +1,54 @@
+{
+    "traits": {
+        "Openness": {
+            "facets": [
+                "Imagination",
+                "Artistic Interests",
+                "Emotionality",
+                "Adventurousness",
+                "Intellect",
+                "Liberalism"
+            ]
+        },
+        "Conscientiousness": {
+            "facets": [
+                "Competence",
+                "Order",
+                "Dutifulness",
+                "Achievement-Striving",
+                "Self-Discipline",
+                "Deliberation"
+            ]
+        },
+        "Extraversion": {
+            "facets": [
+                "Warmth",
+                "Gregariousness",
+                "Assertiveness",
+                "Activity",
+                "Excitement-Seeking",
+                "Positive Emotionality"
+            ]
+        },
+        "Agreeableness": {
+            "facets": [
+                "Trust",
+                "Morality",
+                "Altruism",
+                "Cooperation",
+                "Modesty",
+                "Sympathy"
+            ]
+        },
+        "Neuroticism": {
+            "facets": [
+                "Anxiety",
+                "Anger",
+                "Depression",
+                "Self-Consciousness",
+                "Immoderation",
+                "Vulnerability"
+            ]
+        }
+    }
+}

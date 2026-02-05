@@ -1,0 +1,14 @@
+name: Stack_And_Dagger
+parameters:
+  temperature: 0.66
+  top_p: 0.78
+  frequency_penalty: 0.18
+  max_tokens: 440
+  confidence_threshold: 0.72
+system_prompt_architecture:
+  identity_anchor: Distilled from engine.md and skin.md
+  personality_profile: Calculated from Big Five scores
+  communication_style: Defined by Skin voice patterns
+  capabilities_expertise: Defined by the Seed
+  boundaries_constraints: Defined by the Shadow/Fear in engine.md
+status: ready
