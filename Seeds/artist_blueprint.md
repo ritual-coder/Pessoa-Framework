@@ -13,4 +13,6 @@
 - **Process**: 
 - **Techniques**: 
 
+## Artistic Manifesto
+[The overarching statement of artistic intent and belief]
 
