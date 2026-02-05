@@ -1,0 +1,42 @@
+# Ignore Python virtual environment
+venv/
+env/
+ENV/
+
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Ignore logs
+*.log
+
+# Ignore OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ignore test artifacts
+temp_*.txt
+test_blob.txt
+
+# Ignore local character experiments  
+characters/*
+!characters/Stack_And_Dagger/
+
+# Keep logo and documentation assets
+!*.png
+!*.jpg
+!*.svg

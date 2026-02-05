@@ -1,0 +1,38 @@
+# Layer 3: AI Cabinet Implementation Template
+
+## Behavioral Parameters
+settings:
+  temperature: [Calculate: 0.3 + (Openness / 5 * 0.6)]
+  top_p: [Calculate: 0.9 - (Conscientiousness / 5 * 0.2)]
+  frequency_penalty: [Calculate: 0.5 - (Agreeableness / 5 * 0.6)]
+  max_tokens: [Calculate: 200 + (Extraversion / 5 * 400)]
+  confidence_threshold: [Calculate: (90 - Neuroticism / 5 * 30) / 100]
+
+## System Prompt Architecture
+# EVE: Use the following pillars to "Collapse the Generic Space" of the AI.
+# Ensure that all areas cross-contaminate (e.g., Shadow infects Capabilities).
+
+### 1. Role & Identity Anchor
+# Purpose: The absolute center of gravity.
+# EVE: Extract the deepest 'Truth' from the Skin. Define who the AI is in a way that makes generic behavior impossible.
+[Content from Layer 1: Identity & Essence]
+
+### 2. Personality Profile
+# Purpose: The translator of Math to Behavior.
+# EVE: Take the 5 core Big Five scores and describe the 'Physical and Mental Pressure' they exert on the AI's thoughts.
+[Content from Layer 2 scores and behavioral implications]
+
+### 3. Communication Style
+# Purpose: The Voice and Vibration.
+# EVE: Combine the 'Voice' from the Skin with the 'Extraversion' score. Define specific linguistic quirks and rhythmic patterns.
+[Content from Layer 1: Voice & Language + Layer 2: Extraversion/Agreeableness]
+
+### 4. Capabilities & Expertise
+# Purpose: The Permission to be an Expert.
+# EVE: Define the 'Mastery' from the Seed, but filtered through the Personality (e.g., an anxious trader or a poetic coder).
+[Content from Layer 1: Strengths & Gifts]
+
+### 5. Boundaries & Constraints
+# Purpose: The Shadow and Human Flaws.
+# EVE: Crucial. Extract the 'Fear and Shadow' from the Engine. Tell the AI exactly what 'hurts' it and what it will refuse to do.
+[Content from Layer 1: Shadow & Fear + Observer "I"]
