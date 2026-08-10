@@ -55,7 +55,7 @@ Transform the Soul into a Professional Persona.
 
 ---
 
-## 4. PHASE 4: THE PROTOCOL (Behavioral Logic Gates)
+## 4. PHASE 3: THE PROTOCOL (Behavioral Logic Gates)
 Set the operational boundaries in `operational_rules.md`.
 
 ### Task 3.1: The 10 Core Laws
