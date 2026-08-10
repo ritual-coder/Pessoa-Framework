@@ -157,7 +157,7 @@ def build_activation_prompt(name, skin="", engine="", seed="", rules="",
             tagline = line.split(":", 1)[-1].strip().strip("*_ \"")
             break
     if tagline:
-        out += [f"## Tagline", "", f"*{tagline}*", "", "---", ""]
+        out += ["## Tagline", "", f"*{tagline}*", "", "---", ""]
 
     identity = _find(skin, "identity", "presence", "essence", "name", "core")
     if identity:
@@ -198,7 +198,7 @@ def build_activation_prompt(name, skin="", engine="", seed="", rules="",
         # Rendered as written: protocols commonly number their own laws, and a
         # second numbering on top reads as "1. I. Law of ...".
         out += [f"- {law}" for law in laws]
-        out += ["", f"The full protocol is in `operational_rules.md`.", "", "---", ""]
+        out += ["", "The full protocol is in `operational_rules.md`.", "", "---", ""]
 
     if scores:
         out += ["## Register", "",

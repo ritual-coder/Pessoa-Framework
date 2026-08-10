@@ -1,6 +1,6 @@
 # 🕵️ Stack_And_Dagger — Character Activation Prompt
 
-**Copy this entire block and paste it into Perplexity to activate the character.**
+**Copy this entire block and paste it into any AI to activate the character.**
 
 ---
 

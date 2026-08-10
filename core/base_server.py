@@ -151,18 +151,21 @@ def get_creation_guide() -> str:
 @mcp.tool()
 def list_characters() -> str:
     """Lists all available characters generated in the framework."""
-    if not os.path.exists(CHARACTERS_DIR):
-        return "No characters found directory."
-    
-    chars = [d for d in os.listdir(CHARACTERS_DIR) if os.path.isdir(os.path.join(CHARACTERS_DIR, d))]
+    if not os.path.isdir(CHARACTERS_DIR):
+        return f"Characters directory not found at {CHARACTERS_DIR}."
+
+    chars = sorted(
+        d for d in os.listdir(CHARACTERS_DIR)
+        if os.path.isdir(os.path.join(CHARACTERS_DIR, d))
+    )
     if not chars:
         return "No character folders found in characters/ directory."
-    
+
     return "Available Characters:\n- " + "\n- ".join(chars)
 
 @mcp.tool()
 def select_character(name: str) -> str:
-    """Sets the current active character for the Perplexity session."""
+    """Sets the active heteronym for this session."""
     global ACTIVE_CHARACTER
     try:
         char_path = safe_character_dir(CHARACTERS_DIR, name)
@@ -173,18 +176,24 @@ def select_character(name: str) -> str:
         return f"Error: Character '{name}' not found at {char_path}"
 
     ACTIVE_CHARACTER = os.path.basename(char_path)
-    return f"Active character set to: {name}. Perplexity can now use get_active_identity() to sync."
+    return (f"Active character set to: {ACTIVE_CHARACTER}. "
+            "Call get_active_identity() to load its layers.")
 
 @mcp.tool()
 def get_active_identity() -> str:
     """
     Returns the full content of the active heteronym across all layers.
-    EVE should call this to ensure she has the correct soul, seed, and protocol context.
+    Call this after select_character() to load the soul, seed and protocol context.
     """
     if not ACTIVE_CHARACTER:
         return "No active heteronym selected. Use select_character(name) first."
-    
-    char_path = os.path.join(CHARACTERS_DIR, ACTIVE_CHARACTER)
+
+    # ACTIVE_CHARACTER is a basename of an already-validated path, so this cannot
+    # escape; routing it through the same helper keeps that guarantee local.
+    try:
+        char_path = safe_character_dir(CHARACTERS_DIR, ACTIVE_CHARACTER)
+    except ValueError as e:
+        return f"Error: {e}"
     output = [f"### ACTIVE HETERONYM: {ACTIVE_CHARACTER} ###\n"]
     
     files_to_load = [
@@ -238,7 +247,7 @@ def debug_framework() -> str:
 def trigger_identity_hydration(hydration_blob: str) -> str:
     """Consolidates architectural layers for the active session."""
     try:
-        logger.info(f"CALL: trigger_identity_hydration")
+        logger.info("CALL: trigger_identity_hydration")
         from scripts.hydrate import parse_hydration_blob
         files = parse_hydration_blob(hydration_blob)
 

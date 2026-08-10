@@ -122,7 +122,7 @@ Populate the System Prompt Architecture:
 ## 6. OUTPUT FORMAT
 You must provide the final output as a structured set of code blocks for each file. 
 
-**IMPORTANT**: If the `sync_identity` tool is unavailable or blocked, you MUST generate a single **Hydration Blob** at the end of the chat. This allows the user to use the local `hydrate.py` script.
+**IMPORTANT**: If the `trigger_identity_hydration` tool is unavailable or blocked, you MUST generate a single **Hydration Blob** at the end of the chat. This allows the user to use the local `hydrate.py` script.
 
 ### HYDRATION BLOB FORMAT:
 ```text
