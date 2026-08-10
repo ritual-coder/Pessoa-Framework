@@ -237,7 +237,59 @@ is the specification.
 
 ---
 
-## 8. Extending
+## 8. Applying the parameters
+
+**Most of the cabinet is not directly applicable, and the framework should not
+pretend otherwise.** `ai_cabinet.yaml` is a manifest the framework produces; it
+is not a request body, and no client consumes it automatically.
+
+Two of the five were never parameters of any major API:
+
+| Parameter | Status |
+|---|---|
+| `frequency_penalty` | An **OpenAI** parameter. Not accepted by the Anthropic Messages API. |
+| `confidence_threshold` | Not a parameter of any major API. It originates in the framework's own source material. |
+
+And on Anthropic, sampling parameters were removed from the current model line
+entirely — the guidance there is to steer with prompting instead:
+
+| Parameter | Opus 4.6 / Sonnet 4.6 / Haiku 4.5 | Opus 5 / 4.8 / 4.7, Fable 5 | Sonnet 5 |
+|---|---|---|---|
+| `temperature` | accepted | **400 — removed** | 400 if non-default |
+| `top_p` | accepted | **400 — removed** | 400 if non-default |
+| `max_tokens` | accepted | accepted | accepted |
+
+So against a current Anthropic model, exactly one of the five — `max_tokens` —
+is a live request parameter. Against an OpenAI-compatible endpoint, four are.
+Sending the rest either errors or does nothing.
+
+### Where the other traits land instead
+
+A trait that cannot reach the sampler still has to reach the output, so it is
+carried as **register** in `ACTIVATION_PROMPT.md`, which every client can use:
+
+| Trait | Parameter | Register directive when high / low |
+|---|---|---|
+| Openness | `temperature` | reach for metaphor and abstraction / stay concrete and literal |
+| Conscientiousness | `top_p` | choose words precisely / improvisation is fine |
+| Extraversion | `max_tokens` | think out loud / say less, prefer silence to filler |
+| Agreeableness | `frequency_penalty` | soften edges / be blunt, refrains are welcome |
+| Neuroticism | `confidence_threshold` | qualify and mark uncertainty / state conclusions declaratively |
+
+This is the same principle as `max_tokens` in §4: a parameter is a blunt
+instrument for a property of voice, and voice is where the property belongs.
+`core/activation.py` generates these directives from the same normalised scores
+that produce the parameters, so the two never disagree.
+
+**Practical guidance.** Apply `max_tokens` everywhere. Apply `temperature` and
+`top_p` only on providers and models that accept them — check before sending,
+because a rejected parameter is a 400, not a silent no-op. Treat
+`frequency_penalty` and `confidence_threshold` as documentation of intent, and
+rely on the register for their effect.
+
+---
+
+## 9. Extending
 
 The constants are the tuning surface. To retarget a parameter, change its base
 and span so the endpoints land on the range you want, then re-run

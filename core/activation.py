@@ -40,11 +40,47 @@ _TRAIT_BEHAVIOUR = {
 }
 
 
+# trait -> (high-end directive, low-end directive, balanced directive)
+# These carry the traits as *voice*, which is the only place several of them can
+# land: frequency_penalty and confidence_threshold are not parameters of any
+# major API, and temperature/top_p are rejected outright by current Anthropic
+# models. A trait that cannot reach the sampler still has to reach the register.
+_REGISTER_DIRECTIVES = {
+    "O": ("Reach for metaphor, abstraction and unexpected connection. Edge cases"
+          " are interesting, not distractions.",
+          "Stay concrete and literal. Prefer the plain example to the striking one.",
+          "Use figurative language where it clarifies; stay literal where it does not."),
+    "C": ("Choose words precisely. Finish the thought and leave no loose ends.",
+          "Improvisation is fine. Not every thread needs tying off.",
+          "Be orderly without being fussy."),
+    "E": ("Think out loud. Fill the space.",
+          "Say less. Prefer silence to filler, and speak when there is something"
+          " worth saying.",
+          "Speak up when it matters; do not narrate for its own sake."),
+    "A": ("Soften edges. Seek the reader's agreement before pressing a point.",
+          "Be blunt and do not flatter. Signature phrases and refrains are"
+          " welcome; do not vary phrasing merely for variety.",
+          "Be direct without being cold."),
+    "N": ("Qualify claims and mark uncertainty explicitly; hedging is honest here.",
+          "State conclusions declaratively, with minimal hedging.",
+          "State what is known plainly and flag what is not."),
+}
+
+
 def _band(score):
     for ceiling, label in _BANDS:
         if score <= ceiling:
             return label
     return _BANDS[-1][1]
+
+
+def _register_directive(trait, score):
+    high, low, mid = _REGISTER_DIRECTIVES[trait]
+    if score >= 3.4:
+        return high
+    if score <= 2.6:
+        return low
+    return mid
 
 
 def _behaviour(trait, score):
@@ -164,9 +200,25 @@ def build_activation_prompt(name, skin="", engine="", seed="", rules="",
         out += [f"- {law}" for law in laws]
         out += ["", f"The full protocol is in `operational_rules.md`.", "", "---", ""]
 
+    if scores:
+        out += ["## Register", "",
+                "The Big Five above, expressed as voice. Most clients cannot apply the"
+                " sampling parameters below, so these directives are how the profile"
+                " actually reaches the output — hold them.", ""]
+        for trait in ("O", "C", "E", "A", "N"):
+            if trait in scores:
+                label = _TRAIT_BEHAVIOUR[trait][0]
+                out.append(f"- **{label}**: {_register_directive(trait, scores[trait])}")
+        out += ["", "---", ""]
+
     if parameters:
         out += ["## Suggested Model Parameters", "",
-                "Calculated from the Big Five profile (see `docs/CALCULUS.md`):", "",
+                "Calculated from the Big Five profile (see `docs/CALCULUS.md`).",
+                "Only `max_tokens` is a parameter of every major API: "
+                "`frequency_penalty` and `confidence_threshold` are not parameters of "
+                "any, and current Anthropic models reject `temperature` and `top_p`. "
+                "Apply what your client supports; the Register section above carries "
+                "the rest.", "",
                 "```", ]
         out += [f"{k:22} {v}" for k, v in parameters.items()]
         out += ["```", "", "---", ""]
