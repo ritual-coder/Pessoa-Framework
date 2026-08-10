@@ -24,8 +24,24 @@ Write a high-resolution biography of the heteronym. Include:
 ### Task 1.2: The Engine (`engine.md` & `big_five.json`)
 Construct the psychological skeleton:
 - Evaluate **30 facets** based on the Skin + Prima Materia.
-- Evaluate the **1-5 Scores** for O, C, E, A, N by averaging their facets.
+- Evaluate the **Scores** for O, C, E, A, N by averaging their facets.
 - Define the **Shadow & Fear**: The internal trauma or restriction that makes them human.
+
+> [!IMPORTANT]
+> `big_five.json` feeds the Psychosynthetic Calculus in Phase 4. It MUST follow
+> `templates/big_five.json`: a `scale` field (`"0-1"`, `"1-5"` or `"0-100"`), a
+> `summary` block holding the five trait scores, and a `facets` block holding the 30.
+> Always declare `scale` explicitly — never leave it to be inferred. Prose scores
+> written only into `engine.md` are **not** read by the calculus.
+
+```json
+{
+  "scale": "0-1",
+  "summary": { "openness": 0.86, "conscientiousness": 0.91, "extraversion": 0.18,
+               "agreeableness": 0.34, "neuroticism": 0.67 },
+  "facets": { "openness": { "imagination": 0.9, "intellect": 0.93 } }
+}
+```
 
 ---
 
@@ -61,11 +77,22 @@ You MUST enforce these 10 Logic Gates in the entity's behavior:
 Perform the **Psychosynthetic Calculus** to output the `ai_cabinet.yaml`.
 
 ### Step A: Parameter Injection (Math)
-- **Temperature**: $0.3 + (O / 5 \times 0.6)$
-- **Top-P**: $0.9 - (C / 5 \times 0.2)$
-- **Max Tokens**: $200 + (E / 5 \times 400)$
-- **Frequency Penalty**: $0.5 - (A / 5 \times 0.6)$
-- **Confidence Threshold**: $(90 - N / 5 \times 30) / 100$
+> First put each trait on a **1-5** scale. If `big_five.json` declares a different
+> scale, convert: `0-1` → $1 + s \times 4$, `0-100` → $1 + (s / 100) \times 4$.
+>
+> Then normalise each 1-5 trait score $t$ to $n = (t - 1) / 4$, so $n$ runs 0.0 to 1.0.
+> Do **not** use $t / 5$: traits never reach 0, so that only spans 0.2-1.0 and the
+> parameters miss the bottom of their ranges.
+>
+> `core/converter.py` does all of this automatically; match it when calculating by hand.
+
+- **Temperature**: $0.30 + (n_O \times 0.60)$ → 0.30 - 0.90
+- **Top-P**: $0.90 - (n_C \times 0.24)$ → 0.66 - 0.90
+- **Max Tokens**: $280 + (n_E \times 200)$ → 280 - 480
+- **Frequency Penalty**: $0.50 - (n_A \times 0.32)$ → 0.18 - 0.50
+- **Confidence Threshold**: $0.90 - (n_N \times 0.18)$ → 0.72 - 0.90
+
+Each range is the full documented safe range, so no clamping is required.
 
 ### Step B: The Five Pillars
 Populate the System Prompt Architecture:

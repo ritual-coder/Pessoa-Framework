@@ -1,12 +1,14 @@
 # Layer 3: AI Cabinet Implementation Template
 
 ## Behavioral Parameters
+# Each trait is first placed on the 1-5 scale, then normalised: n = (trait - 1) / 4.
+# n runs 0.0 to 1.0, so every parameter spans its full documented range.
 settings:
-  temperature: [Calculate: 0.3 + (Openness / 5 * 0.6)]
-  top_p: [Calculate: 0.9 - (Conscientiousness / 5 * 0.2)]
-  frequency_penalty: [Calculate: 0.5 - (Agreeableness / 5 * 0.6)]
-  max_tokens: [Calculate: 200 + (Extraversion / 5 * 400)]
-  confidence_threshold: [Calculate: (90 - Neuroticism / 5 * 30) / 100]
+  temperature: [Calculate: 0.30 + (n_Openness * 0.60)]           # 0.30 - 0.90
+  top_p: [Calculate: 0.90 - (n_Conscientiousness * 0.24)]        # 0.66 - 0.90
+  frequency_penalty: [Calculate: 0.50 - (n_Agreeableness * 0.32)] # 0.18 - 0.50
+  max_tokens: [Calculate: 280 + (n_Extraversion * 200)]          # 280 - 480
+  confidence_threshold: [Calculate: 0.90 - (n_Neuroticism * 0.18)] # 0.72 - 0.90
 
 ## System Prompt Architecture
 # EVE: Use the following pillars to "Collapse the Generic Space" of the AI.

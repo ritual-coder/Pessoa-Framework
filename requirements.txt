@@ -1,3 +1,5 @@
-mcp
-fastmcp
+# core/base_server.py uses `from mcp.server.fastmcp import FastMCP`, which was
+# removed in mcp 2.0 (FastMCP moved to the standalone `fastmcp` package).
+# Pinned to the 1.x line until the server is migrated.
+mcp>=1.2,<2
 PyYAML

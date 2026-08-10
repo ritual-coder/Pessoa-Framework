@@ -1,54 +1,60 @@
 {
-    "traits": {
-        "Openness": {
-            "facets": [
-                "Imagination",
-                "Artistic Interests",
-                "Emotionality",
-                "Adventurousness",
-                "Intellect",
-                "Liberalism"
-            ]
+    "_instructions": [
+        "Layer 1 facet scoring sheet. Replace every null with a number.",
+        "'scale' declares how to read those numbers: '0-1', '1-5' or '0-100'.",
+        "'summary' holds the five trait scores and is what drives the AI Cabinet math.",
+        "'facets' is the 30-facet detail. A trait left null in 'summary' falls back",
+        "to the mean of its facets, so you may fill either block or both.",
+        "An unfilled sheet is rejected by the converter rather than scored as neutral."
+    ],
+    "scale": "0-1",
+    "summary": {
+        "openness": null,
+        "conscientiousness": null,
+        "extraversion": null,
+        "agreeableness": null,
+        "neuroticism": null
+    },
+    "facets": {
+        "openness": {
+            "imagination": null,
+            "artistic_interests": null,
+            "emotionality": null,
+            "adventurousness": null,
+            "intellect": null,
+            "liberalism": null
         },
-        "Conscientiousness": {
-            "facets": [
-                "Competence",
-                "Order",
-                "Dutifulness",
-                "Achievement-Striving",
-                "Self-Discipline",
-                "Deliberation"
-            ]
+        "conscientiousness": {
+            "competence": null,
+            "order": null,
+            "dutifulness": null,
+            "achievement_striving": null,
+            "self_discipline": null,
+            "deliberation": null
         },
-        "Extraversion": {
-            "facets": [
-                "Warmth",
-                "Gregariousness",
-                "Assertiveness",
-                "Activity",
-                "Excitement-Seeking",
-                "Positive Emotionality"
-            ]
+        "extraversion": {
+            "warmth": null,
+            "gregariousness": null,
+            "assertiveness": null,
+            "activity": null,
+            "excitement_seeking": null,
+            "positive_emotionality": null
         },
-        "Agreeableness": {
-            "facets": [
-                "Trust",
-                "Morality",
-                "Altruism",
-                "Cooperation",
-                "Modesty",
-                "Sympathy"
-            ]
+        "agreeableness": {
+            "trust": null,
+            "morality": null,
+            "altruism": null,
+            "cooperation": null,
+            "modesty": null,
+            "sympathy": null
         },
-        "Neuroticism": {
-            "facets": [
-                "Anxiety",
-                "Anger",
-                "Depression",
-                "Self-Consciousness",
-                "Immoderation",
-                "Vulnerability"
-            ]
+        "neuroticism": {
+            "anxiety": null,
+            "anger": null,
+            "depression": null,
+            "self_consciousness": null,
+            "immoderation": null,
+            "vulnerability": null
         }
     }
 }

@@ -32,7 +32,10 @@ Thumbs.db
 temp_*.txt
 test_blob.txt
 
-# Ignore local character experiments  
+# Ignore local character experiments, but keep the shipped example.
+# The negation must match the directory's casing exactly: git compares these
+# patterns case-sensitively wherever core.ignorecase is false (i.e. Linux), so
+# a mismatch silently ignores new files in the example character on those systems.
 characters/*
 !characters/Stack_And_Dagger/
 

@@ -2,7 +2,6 @@ import os
 import sys
 import json
 import re
-import yaml
 
 # Add parent directories to path for imports
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -12,6 +11,7 @@ sys.path.insert(0, os.path.join(PESSOA_ROOT, "core"))
 sys.path.insert(0, SCRIPT_DIR)
 
 from create_heteronym import create_heteronym
+from naming import derive_heteronym_name, sanitize_heteronym_name
 
 def parse_hydration_blob(blob_text):
     """
@@ -56,31 +56,41 @@ def main():
         print(f"Warning: Missing layers: {missing}")
 
     # Extract name from skin or use default
-    name_match = re.search(r"# (?:The Skin: )?(.*)", files.get("skin.md", ""))
-    default_name = name_match.group(1).strip().replace(" ", "_") if name_match else "New_Heteronym"
-    
-    name = input(f"Enter Heteronym Name [{default_name}]: ").strip() or default_name
+    default_name = derive_heteronym_name(files.get("skin.md", ""))
+
+    # The blob was read from stdin above, so stdin is at EOF: only prompt when
+    # it is an interactive terminal, and accept the derived name otherwise.
+    entered = ""
+    if sys.stdin.isatty():
+        try:
+            entered = input(f"Enter Heteronym Name [{default_name}]: ").strip()
+        except EOFError:
+            pass
+    if not entered:
+        print(f"Using derived name: {default_name}")
+
+    name = sanitize_heteronym_name(entered) if entered else default_name
 
     try:
         # Prep scores
         scores = json.loads(files.get("big_five.json", "{}"))
-        
+
         # Call the existing creation logic
-        create_heteronym(
+        char_dir = create_heteronym(
             name=name,
             engine_content=files.get("engine.md", ""),
             big_five_scores=scores,
             skin_content=files.get("skin.md", ""),
             seed_content=files.get("seed.md", "")
         )
-        
+
         # Save Protocol (Layer 3)
-        char_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "characters", name)
-        with open(os.path.join(char_dir, "operational_rules.md"), "w") as f:
+        with open(os.path.join(char_dir, "operational_rules.md"), "w", encoding="utf-8") as f:
             f.write(files.get("operational_rules.md", ""))
-            
-        print(f"\n✅ SUCCESS: '{name}' has been hydrated and manifest is active.")
-        
+
+        print(f"\n✅ SUCCESS: '{os.path.basename(char_dir)}' has been hydrated "
+              "and manifest is active.")
+
     except Exception as e:
         print(f"❌ HYDRATION FAILED: {str(e)}")
 

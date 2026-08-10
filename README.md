@@ -10,7 +10,7 @@ Pessoa transforms raw human essence into functional AI heteronyms—distinct dig
 
 ---
 
-## 🎭 What is a Heteronym?
+## What is a Heteronym?
 
 A heteronym is a fully-realized AI character with:
 - **Soul** (Identity & Psychology): Voice, personality traits, and psychological depth
@@ -133,14 +133,35 @@ For Claude Desktop or other MCP-compatible apps, add to your config:
 }
 ```
 
+Optionally, point the server at a folder of your own `.md` notes to use as raw
+source material (Prima Materia) during character creation:
+
+```json
+{
+  "mcpServers": {
+    "pessoa": {
+      "command": "/path/to/Pessoa/venv/bin/python3",
+      "args": ["/path/to/Pessoa/core/base_server.py"],
+      "env": { "PESSOA_ANALYSIS_DIR": "/path/to/your/notes" }
+    }
+  }
+}
+```
+
+> [!NOTE]
+> `PESSOA_ANALYSIS_DIR` is optional and unset by default. Every `.md` file in
+> that folder is read verbatim into the conversation, so point it only at
+> material you are comfortable sharing with the model.
+
 ### Available Tools
-- `fetch_analysis_data()` - Import digital footprint data
+- `fetch_analysis_data()` - Read the Prima Materia notes from `PESSOA_ANALYSIS_DIR`
 - `get_framework_templates()` - View template structure
 - `get_creation_guide()` - Access EVE master prompt
 - `list_characters()` - See created characters
 - `select_character(name)` - Set active character
 - `get_active_identity()` - Load full character profile
 - `trigger_identity_hydration(blob)` - Auto-create from hydration blob
+- `debug_framework()` - Show resolved paths, Python version and exposed tools
 
 ---
 

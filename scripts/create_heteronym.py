@@ -2,7 +2,8 @@ import os
 import sys
 import json
 import yaml
-from converter import PersonalityConverter
+from converter import NEUTRAL, PersonalityConverter
+from naming import safe_character_dir, sanitize_heteronym_name
 
 def create_heteronym(name, engine_content, big_five_scores, skin_content=None, seed_content=None):
     """
@@ -15,26 +16,37 @@ def create_heteronym(name, engine_content, big_five_scores, skin_content=None, s
         skin_content (str): Layer 1: The Skin (Biography and Voice).
         seed_content (str): Layer 2: The Seed (Mission and Expertise).
     """
+    # Run the calculus first: a profile we cannot score should fail before
+    # anything is written to disk, not halfway through.
+    calculus = PersonalityConverter.analyze(big_five_scores)
+    params = calculus["parameters"]
+
+    # The name may come from LLM output or a pasted blob: reduce it to a single
+    # safe path segment, then confirm it lands inside characters/ before writing.
+    name = sanitize_heteronym_name(name)
+
     # Determine target directory relative to this script
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    char_dir = os.path.join(BASE_DIR, "characters", name)
+    char_dir = safe_character_dir(os.path.join(BASE_DIR, "characters"), name)
     os.makedirs(char_dir, exist_ok=True)
-    
+
     # 1. Save Engine (Layer 1)
     with open(os.path.join(char_dir, "engine.md"), "w") as f:
         f.write(engine_content)
-        
+
     # 2. Save Big Five Scores (Layer 1)
     with open(os.path.join(char_dir, "big_five.json"), "w") as f:
         json.dump(big_five_scores, f, indent=2)
-        
-    # 3. Calculate and Save AI Cabinet (Layer 3)
-    params = PersonalityConverter.calculate_layer3_params(big_five_scores)
-    
+
+    # 3. Save AI Cabinet (Layer 3)
     # Build the 5-Pillar System Prompt Architecture
     ai_cabinet = {
         "name": name,
         "parameters": params,
+        # The 1-5 scores the parameters were actually derived from, so a
+        # cabinet can be audited against the profile that produced it.
+        "big_five_normalized": calculus["scores"],
+        "calculus": calculus["meta"],
         "system_prompt_architecture": {
             "identity_anchor": "Distilled from engine.md and skin.md",
             "personality_profile": "Calculated from Big Five scores",
@@ -59,7 +71,14 @@ def create_heteronym(name, engine_content, big_five_scores, skin_content=None, s
             f.write(seed_content)
         
     print(f"Heteronym '{name}' created successfully in {char_dir}")
+    meta = calculus["meta"]
+    scale_note = "declared" if meta["scale_declared"] else "inferred"
+    print(f"Big Five ({meta['scale']} scale, {scale_note}) -> {calculus['scores']}")
+    if meta["missing_traits"]:
+        print(f"WARNING: no score found for {', '.join(meta['missing_traits'])}; "
+              f"used neutral {NEUTRAL}. Check big_five.json.")
     print(f"Calculated Parameters: {params}")
+    return char_dir
 
 if __name__ == "__main__":
     # Example usage for manual ingestion

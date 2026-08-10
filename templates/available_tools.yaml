@@ -4,8 +4,8 @@
 # Add the exact tool names available to this specific persona
 enabled_tools:
   - fetch_analysis_data
-  - list_heteronyms
-  - select_heteronym
+  - list_characters
+  - select_character
   - get_active_identity
   - [Example: post_tweet_to_x]
   - [Example: fetch_market_data]
