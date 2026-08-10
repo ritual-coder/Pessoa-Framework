@@ -167,6 +167,9 @@ source material (Prima Materia) during character creation:
 
 ## 📖 Documentation
 
+- **The Psychosynthetic Calculus**: [`docs/CALCULUS.md`](docs/CALCULUS.md) — how Big Five
+  scores become LLM parameters: the `big_five.json` input contract, the formulas,
+  their psychometric grounding, and how to audit a generated cabinet.
 - **EVE Master Prompt**: `templates/eve_master_prompt.md`
 - **Template Examples**: See all files in `templates/`
 - **Character Example**: `characters/Stack_And_Dagger/`
