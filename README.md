@@ -153,6 +153,24 @@ source material (Prima Materia) during character creation:
 > that folder is read verbatim into the conversation, so point it only at
 > material you are comfortable sharing with the model.
 
+### Activating a character (MCP Prompts)
+
+The server exposes each character as an **MCP prompt**, which your client inserts
+into the conversation as a user message. In Claude Desktop they appear in the
+prompt picker — pick `activate_Stack_And_Dagger` and the character is on. No
+copy-paste, no tool call.
+
+- `activate_<Name>` — one per character present when the server started
+- `activate_heteronym(name)` — works for any character, including one created
+  since startup
+
+> [!NOTE]
+> Use the prompts to *become* a character and the tools to *inspect* one.
+> `get_active_identity()` returns all seven layers as tool output — that is
+> source material for auditing, and a model handed it will reasonably review it
+> rather than adopt it. `ACTIVATION_PROMPT.md`, which the prompts serve, is the
+> artifact built to be worn.
+
 ### Available Tools
 - `fetch_analysis_data()` - Read the Prima Materia notes from `PESSOA_ANALYSIS_DIR`
 - `get_framework_templates()` - View template structure

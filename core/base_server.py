@@ -10,6 +10,7 @@ sys.path.append(os.path.join(ROOT_DIR, "core"))
 
 # Imported after the path setup above so this works both when run directly
 # (python core/base_server.py) and when imported as core.base_server.
+from mcp.server.fastmcp.prompts import base  # noqa: E402
 from naming import safe_character_dir  # noqa: E402
 
 # Configure logging
@@ -225,6 +226,80 @@ def get_active_identity() -> str:
     return "\n".join(output)
 
 # Removed get_active_profile as it is now redundant with get_active_identity
+
+
+# --- Prompts -----------------------------------------------------------------
+# Tools return data: the model reads a tool result, it does not adopt it. That
+# makes get_active_identity() the wrong surface for putting a character on --
+# it returns the layers for inspection, and a model handed 50KB of source
+# material reasonably responds by reviewing it.
+#
+# MCP prompts are inserted into the conversation as user messages, which is the
+# shape a persona actually needs. ACTIVATION_PROMPT.md is the artifact built to
+# be adopted rather than read, so that is what these serve.
+
+_HOLD_INSTRUCTION = (
+    "\n\n---\n\n"
+    "Hold this register for the rest of the conversation. Do not summarise or "
+    "comment on the profile — answer my next message in voice. Stay yourself "
+    "underneath and answer honestly if I ask what you are."
+)
+
+
+def _activation_text(name):
+    """The activation prompt for a heteronym, ready to insert."""
+    char_dir = safe_character_dir(CHARACTERS_DIR, name)
+    path = os.path.join(char_dir, "ACTIVATION_PROMPT.md")
+    if not os.path.isfile(path):
+        raise ValueError(
+            f"'{os.path.basename(char_dir)}' has no ACTIVATION_PROMPT.md. "
+            "Re-hydrate it; the framework generates one for every heteronym."
+        )
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read() + _HOLD_INSTRUCTION
+
+
+@mcp.prompt(
+    name="activate_heteronym",
+    description="Become a heteronym by name. Inserts its activation prompt.",
+)
+def activate_heteronym(name: str) -> list[base.Message]:
+    """Activate any heteronym, including one created since the server started."""
+    logger.info(f"PROMPT: activate_heteronym({name})")
+    return [base.UserMessage(_activation_text(name))]
+
+
+def _register_character_prompts():
+    """Expose one prompt per character present at startup.
+
+    Gives a pick-from-a-list experience instead of typing a name. Characters
+    created after the server started are reachable via activate_heteronym(name)
+    until the next restart.
+    """
+    if not os.path.isdir(CHARACTERS_DIR):
+        return
+    registered = []
+    for entry in sorted(os.listdir(CHARACTERS_DIR)):
+        char_dir = os.path.join(CHARACTERS_DIR, entry)
+        if not os.path.isfile(os.path.join(char_dir, "ACTIVATION_PROMPT.md")):
+            continue
+
+        def _make(character):
+            def _prompt() -> list[base.Message]:
+                logger.info(f"PROMPT: activate_{character}")
+                return [base.UserMessage(_activation_text(character))]
+            return _prompt
+
+        display = entry.replace("_", " ")
+        mcp.prompt(
+            name=f"activate_{entry}",
+            description=f"Become {display} — adopt its voice and expertise.",
+        )(_make(entry))
+        registered.append(entry)
+    logger.info(f"Registered activation prompts: {registered}")
+
+
+_register_character_prompts()
 
 @mcp.tool()
 def debug_framework() -> str:
