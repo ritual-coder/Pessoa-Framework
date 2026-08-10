@@ -222,8 +222,8 @@ max_tokens 380      confidence_threshold 0.891
 ```
 
 The old values came from formulas that could not hit the §4 bands or stay inside
-the §5 bounds. Any external material citing them — including
-`Personality_Framework.pdf` — is out of date.
+the §5 bounds. Any external material citing them is out of date; this document
+is the specification.
 
 ---
 
