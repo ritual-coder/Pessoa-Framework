@@ -193,7 +193,12 @@ def get_active_identity() -> str:
         ("big_five.json", "LAYER 1: BIG FIVE SCORES"),
         ("seed.md", "LAYER 2: THE SEED (Mission)"),
         ("operational_rules.md", "PROTOCOL: OPERATIONAL RULES"),
-        ("ai_cabinet.yaml", "MANIFEST: AI CABINET")
+        ("ai_cabinet.yaml", "MANIFEST: AI CABINET"),
+        # Last: it distils the layers above, and an authored version may carry
+        # framing that exists nowhere else. Including it also makes the file
+        # observable -- without it there is no way to tell from the tools
+        # whether an authored prompt survived hydration or was regenerated over.
+        ("ACTIVATION_PROMPT.md", "ARTIFACT: ACTIVATION PROMPT")
     ]
     
     for filename, label in files_to_load:
