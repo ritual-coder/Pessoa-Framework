@@ -76,17 +76,17 @@ def main():
         scores = json.loads(files.get("big_five.json", "{}"))
 
         # Call the existing creation logic
+        # ACTIVATION_PROMPT.md is optional: one is composed from the layers when
+        # the blob does not carry an authored version.
         char_dir = create_heteronym(
             name=name,
             engine_content=files.get("engine.md", ""),
             big_five_scores=scores,
             skin_content=files.get("skin.md", ""),
-            seed_content=files.get("seed.md", "")
+            seed_content=files.get("seed.md", ""),
+            rules_content=files.get("operational_rules.md", ""),
+            activation_content=files.get("ACTIVATION_PROMPT.md", ""),
         )
-
-        # Save Protocol (Layer 3)
-        with open(os.path.join(char_dir, "operational_rules.md"), "w", encoding="utf-8") as f:
-            f.write(files.get("operational_rules.md", ""))
 
         print(f"\n✅ SUCCESS: '{os.path.basename(char_dir)}' has been hydrated "
               "and manifest is active.")

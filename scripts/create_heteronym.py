@@ -2,10 +2,12 @@ import os
 import sys
 import json
 import yaml
+from activation import build_activation_prompt
 from converter import NEUTRAL, PersonalityConverter
 from naming import safe_character_dir, sanitize_heteronym_name
 
-def create_heteronym(name, engine_content, big_five_scores, skin_content=None, seed_content=None):
+def create_heteronym(name, engine_content, big_five_scores, skin_content=None,
+                     seed_content=None, rules_content=None, activation_content=None):
     """
     Creates a new heteronym folder and populates it with Pessoa Framework files.
     
@@ -69,7 +71,28 @@ def create_heteronym(name, engine_content, big_five_scores, skin_content=None, s
     if seed_content:
         with open(os.path.join(char_dir, "seed.md"), "w") as f:
             f.write(seed_content)
-        
+
+    # 6. Save Protocol (Layer 3) when supplied, so the activation prompt below
+    # can distil it. Callers that write it themselves may omit it.
+    if rules_content:
+        with open(os.path.join(char_dir, "operational_rules.md"), "w") as f:
+            f.write(rules_content)
+
+    # 7. Activation prompt: the pasteable artifact. An authored version always
+    # wins; otherwise compose one from the layers so no character ships without.
+    if not activation_content:
+        activation_content = build_activation_prompt(
+            name=name,
+            skin=skin_content or "",
+            engine=engine_content or "",
+            seed=seed_content or "",
+            rules=rules_content or "",
+            scores=calculus["scores"],
+            parameters=params,
+        )
+    with open(os.path.join(char_dir, "ACTIVATION_PROMPT.md"), "w") as f:
+        f.write(activation_content)
+
     print(f"Heteronym '{name}' created successfully in {char_dir}")
     meta = calculus["meta"]
     scale_note = "declared" if meta["scale_declared"] else "inferred"
