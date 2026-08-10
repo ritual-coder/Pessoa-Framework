@@ -95,7 +95,7 @@ Perform the **Psychosynthetic Calculus** to output the `ai_cabinet.yaml`.
 
 - **Temperature**: $0.30 + (n_O \times 0.60)$ → 0.30 - 0.90
 - **Top-P**: $0.90 - (n_C \times 0.24)$ → 0.66 - 0.90
-- **Max Tokens**: $280 + (n_E \times 200)$ → 280 - 480
+- **Max Tokens**: $512 + (n_E \times 3584)$ → 512 - 4096
 - **Frequency Penalty**: $0.50 - (n_A \times 0.32)$ → 0.18 - 0.50
 - **Confidence Threshold**: $0.90 - (n_N \times 0.18)$ → 0.72 - 0.90
 

@@ -7,7 +7,7 @@ settings:
   temperature: [Calculate: 0.30 + (n_Openness * 0.60)]           # 0.30 - 0.90
   top_p: [Calculate: 0.90 - (n_Conscientiousness * 0.24)]        # 0.66 - 0.90
   frequency_penalty: [Calculate: 0.50 - (n_Agreeableness * 0.32)] # 0.18 - 0.50
-  max_tokens: [Calculate: 280 + (n_Extraversion * 200)]          # 280 - 480
+  max_tokens: [Calculate: 512 + (n_Extraversion * 3584)]         # 512 - 4096
   confidence_threshold: [Calculate: 0.90 - (n_Neuroticism * 0.18)] # 0.72 - 0.90
 
 ## System Prompt Architecture

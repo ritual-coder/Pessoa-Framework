@@ -77,7 +77,7 @@ which is why it needed a clamp. `(trait − 1) / 4` maps 1 → 0.0 and 5 → 1.0
 | `temperature` | Openness | `0.30 + n × 0.60` | 0.30 – 0.90 |
 | `top_p` | Conscientiousness | `0.90 − n × 0.24` | 0.66 – 0.90 |
 | `frequency_penalty` | Agreeableness | `0.50 − n × 0.32` | 0.18 – 0.50 |
-| `max_tokens` | Extraversion | `280 + n × 200` | 280 – 480 |
+| `max_tokens` | Extraversion | `512 + n × 3584` | 512 – 4096 |
 | `confidence_threshold` | Neuroticism | `0.90 − n × 0.18` | 0.72 – 0.90 |
 
 Each spans exactly its documented range, so **no clamping is required**.
@@ -89,7 +89,7 @@ Each spans exactly its documented range, so **no clamping is required**.
 | `temperature` | 0.300 | 0.450 | 0.600 | 0.750 | 0.900 |
 | `top_p` | 0.900 | 0.840 | 0.780 | 0.720 | 0.660 |
 | `frequency_penalty` | 0.500 | 0.420 | 0.340 | 0.260 | 0.180 |
-| `max_tokens` | 280 | 330 | 380 | 430 | 480 |
+| `max_tokens` | 512 | 1408 | 2304 | 3200 | 4096 |
 | `confidence_threshold` | 0.900 | 0.855 | 0.810 | 0.765 | 0.720 |
 
 ---
@@ -113,8 +113,17 @@ bands, which are the framework's statement of design intent:
 |---|---|---|---|
 | `top_p` | 0.86 – 0.90 | 0.78 | 0.66 – 0.70 |
 | `frequency_penalty` | 0.38 – 0.42 | 0.32 | 0.18 – 0.26 |
-| `max_tokens` | 280 – 320 | 360 | 440 – 480 |
+| `max_tokens` | — | — | — |
 | `confidence_threshold` | 0.82 – 0.90 | 0.78 | 0.72 |
+
+**`max_tokens` deliberately departs from its band.** The spec placed it at
+280–480, a cost ceiling from an era of expensive output. Unlike the other four,
+`max_tokens` is a *truncation ceiling*, not a style dial: it cannot make a
+response terse, only cut it off mid-sentence. A low-Extraversion character asked
+for a long deliverable should write a *terse* long deliverable, not a severed
+one. Extraversion still scales the budget — 512 to 4096 — but the budget is now
+large enough not to destroy the work. Terseness is carried by the register, in
+`ACTIVATION_PROMPT.md`, which is where it belongs.
 
 `python core/converter.py` asserts conformance to these bands and exits non-zero
 on failure. Treat it as the regression test for any change to the constants.
@@ -128,7 +137,7 @@ on failure. Treat it as the regression test for any change to the constants.
 | `temperature` | ≤ 0.90 | above this, hallucination risk |
 | `top_p` | ≥ 0.60 | below this, output reads robotic |
 | `frequency_penalty` | ≥ 0.10 | below this, heavy repetition |
-| `max_tokens` | ≤ 480 | cost control |
+| `max_tokens` | ≤ 4096 | generous ceiling, see §3 note |
 | `confidence_threshold` | ≥ 0.70 | below this, output hedges to uselessness |
 
 Because §3 is fitted inside these, the bounds are an **inert guard against bad
@@ -147,7 +156,7 @@ parameters:
   temperature: 0.816
   top_p: 0.682
   frequency_penalty: 0.391
-  max_tokens: 316
+  max_tokens: 1157
   confidence_threshold: 0.779
 big_five_normalized:      # the 1-5 scores the formulas actually consumed
   O: 4.44
@@ -182,12 +191,13 @@ n           O 0.86   C 0.91   E 0.18   A 0.34   N 0.67
 temperature          = 0.30 + 0.86 × 0.60 = 0.816
 top_p                = 0.90 − 0.91 × 0.24 = 0.682
 frequency_penalty    = 0.50 − 0.34 × 0.32 = 0.391
-max_tokens           = 280  + 0.18 × 200  = 316
+max_tokens           = 512  + 0.18 × 3584 = 1157
 confidence_threshold = 0.90 − 0.67 × 0.18 = 0.779
 ```
 
-High Openness yields a high temperature; low Extraversion yields 316 tokens
-rather than the 480 ceiling — terse, matching the character sheet.
+High Openness yields a high temperature; low Extraversion yields 1157 tokens
+against a 4096 ceiling — a smaller budget than a talkative character would get,
+without truncating the work.
 
 > Note that for a profile authored on the 0-1 scale, `n` equals the raw score.
 > The two conversions in §2 are inverse over that range, so 0-1 input passes
@@ -218,7 +228,7 @@ the bands in §4.
 
 ```
 temperature 0.495   top_p 0.678   frequency_penalty 0.436
-max_tokens 380      confidence_threshold 0.891
+max_tokens 2304     confidence_threshold 0.891
 ```
 
 The old values came from formulas that could not hit the §4 bands or stay inside

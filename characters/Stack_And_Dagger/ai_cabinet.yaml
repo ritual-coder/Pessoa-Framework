@@ -3,7 +3,7 @@ parameters:
   temperature: 0.816
   top_p: 0.682
   frequency_penalty: 0.391
-  max_tokens: 316
+  max_tokens: 1157
   confidence_threshold: 0.779
 big_five_normalized:
   O: 4.44

@@ -31,7 +31,7 @@ SAFETY_BOUNDS = {
     "temperature": (None, 0.90),        # above 0.90 risks hallucination
     "top_p": (0.60, None),              # below 0.60 reads robotic
     "frequency_penalty": (0.10, None),  # below 0.10 permits heavy repetition
-    "max_tokens": (None, 480),          # cost control
+    "max_tokens": (None, 4096),         # generous ceiling; see analyze()
     "confidence_threshold": (0.70, None),  # below 0.70 output hedges to uselessness
 }
 
@@ -249,7 +249,14 @@ class PersonalityConverter:
         # Agreeableness -> social style (r=-0.38)
         freq_penalty = round(0.50 - n_a * 0.32, 3)         # 0.18 - 0.50
         # Extraversion -> verbosity (r=0.62)
-        max_tokens = int(round(280 + n_e * 200))           # 280 - 480
+        # Unlike the other four, max_tokens is a truncation ceiling rather than
+        # a style dial: it cannot make a response terse, only cut it off. The
+        # spec's original 280-480 band was a cost ceiling from an era of
+        # expensive output, and it truncates real deliverables well before a
+        # low-Extraversion character has finished being brief. Extraversion
+        # still scales the budget; the budget is now large enough not to sever
+        # the work. Terseness is carried by the register, not the ceiling.
+        max_tokens = int(round(512 + n_e * 3584))          # 512 - 4096
         # Neuroticism -> confidence (r=-0.48)
         confidence = round(0.90 - n_n * 0.18, 3)           # 0.72 - 0.90
 
@@ -288,7 +295,9 @@ def _self_test():
     bands = [
         ("top_p", "C", {1: (0.86, 0.90), 3: (0.78, 0.78), 5: (0.66, 0.70)}),
         ("frequency_penalty", "A", {1: (0.38, 0.50), 3: (0.32, 0.34), 5: (0.18, 0.26)}),
-        ("max_tokens", "E", {1: (280, 320), 3: (360, 380), 5: (440, 480)}),
+        # max_tokens deliberately departs from the spec's 280-480 band (see
+        # analyze()); asserted against its own documented range instead.
+        ("max_tokens", "E", {1: (512, 512), 3: (2304, 2304), 5: (4096, 4096)}),
         ("confidence_threshold", "N", {1: (0.82, 0.90), 3: (0.78, 0.81), 5: (0.72, 0.72)}),
     ]
     failures = []
