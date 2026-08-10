@@ -33,6 +33,14 @@ Construct the psychological skeleton:
 > `summary` block holding the five trait scores, and a `facets` block holding the 30.
 > Always declare `scale` explicitly — never leave it to be inferred. Prose scores
 > written only into `engine.md` are **not** read by the calculus.
+>
+> **Do not compute or record parameter values in `big_five.json`.** The framework
+> calculates them at hydration and writes them to `ai_cabinet.yaml`, which is the
+> only authoritative source. Hand-written numbers drift the moment a formula
+> changes and will mislead the next reader. Design notes about the *scores* —
+> why a facet was depressed, how the profile contrasts with another heteronym —
+> are welcome; derived parameters are not. If you need the values, read the
+> generated cabinet.
 
 ```json
 {
