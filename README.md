@@ -214,7 +214,9 @@ Copy the output and paste it into your AI to become Stack_And_Dagger.
 
 ### MCP Server Configuration
 
-For Claude Desktop or other MCP-compatible apps, add to your config:
+For Claude Desktop or other MCP-compatible apps, add to your config.
+
+macOS and Linux:
 
 ```json
 {
@@ -222,6 +224,35 @@ For Claude Desktop or other MCP-compatible apps, add to your config:
     "pessoa": {
       "command": "/path/to/Pessoa/venv/bin/python3",
       "args": ["/path/to/Pessoa/core/base_server.py"]
+    }
+  }
+}
+```
+
+Windows (backslashes are doubled inside JSON):
+
+```json
+{
+  "mcpServers": {
+    "pessoa": {
+      "command": "C:\\path\\to\\Pessoa\\venv\\Scripts\\python.exe",
+      "args": ["C:\\path\\to\\Pessoa\\core\\base_server.py"]
+    }
+  }
+}
+```
+
+Or let a starter script create the virtual environment and install the
+requirements on first run: `START_PESSOA.sh` on macOS and Linux
+(`"command": "/path/to/Pessoa/START_PESSOA.sh"`), `START_PESSOA.ps1` on Windows:
+
+```json
+{
+  "mcpServers": {
+    "pessoa": {
+      "command": "powershell",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+               "C:\\path\\to\\Pessoa\\START_PESSOA.ps1"]
     }
   }
 }
@@ -243,11 +274,31 @@ creation:
 }
 ```
 
+On Windows the same `env` entry works, with a Windows path
+(`"PESSOA_ANALYSIS_DIR": "C:\\Users\\you\\notes"`).
+
 > [!NOTE]
 > `PESSOA_ANALYSIS_DIR` is optional and unset by default. Every supported file
 > in that folder is read verbatim into the conversation, so point it only at
 > material you are comfortable sharing with the model. Other file types are
 > listed as skipped; scanned PDFs need OCR first, since they contain no text.
+
+### Platforms
+
+Pessoa is plain Python 3.10+ and runs on macOS, Windows and Linux; it is tested
+on macOS. Differences to know:
+
+- **Paths**: the virtual environment's Python is `venv/bin/python3` on macOS and
+  Linux, `venv\Scripts\python.exe` on Windows (e.g. `venv\Scripts\python.exe scripts\studio.py`).
+- **Starters**: `START_PESSOA.sh` (bash) on macOS and Linux, `START_PESSOA.ps1`
+  (PowerShell) on Windows.
+- **Private files**: memory and state files are made owner-only (0600) on macOS
+  and Linux. Windows has no such mode bits, so they keep the folder's normal
+  permissions: keep the framework in a folder only you can read.
+- **Clipboard**: `hydrate.py --clipboard` uses `pbpaste` (macOS), PowerShell
+  (Windows), or `wl-paste` / `xclip` (Linux; install one of them).
+- **Claude Desktop** is available for macOS and Windows. On Linux, use the
+  Studio with any Claude chat, or the MCP server with another MCP client.
 
 ### Guided wizards (MCP Prompts)
 
