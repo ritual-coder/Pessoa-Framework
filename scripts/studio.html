@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pessoa Framework</title>
+<link rel="icon" href="/logo.png">
+<style>
+  /* The logo's three colours (ink #1a1a1a, rust #8c4614, grey #8c8c8c) on a warm parchment that
+     brings them out. The logo grey is too light for small text (2.9:1), so it draws lines and idle
+     marks; small text uses a darker shade of it (#5f5f5f, 5.6:1). */
+  :root {
+    --logo-ink: #1a1a1a; --logo-rust: #8c4614; --logo-grey: #8c8c8c;
+    --bg: #f4efe6; --card: #fbf8f2; --field: #fffdf9; --ink: var(--logo-ink); --muted: #5f5f5f;
+    --line: color-mix(in srgb, var(--logo-grey) 45%, var(--bg)); --idle: var(--logo-grey);
+    --accent: var(--logo-rust); --accent-ink: #fbf7f0; --soft: color-mix(in srgb, var(--logo-rust) 9%, var(--card));
+    --btn: var(--logo-ink); --btn-ink: #fbf7f0;
+    --warn: #8a5a00; --err: #a3261b; --ok: #2f6b3a;
+  }
+  @media (prefers-color-scheme: dark) {
+    /* Same three hues for a dark room: ink turns to parchment, rust is lifted to stay readable. */
+    :root { --bg: #1a1714; --card: #221e1a; --field: #171411; --ink: #f4efe6; --muted: #aaa49b;
+            --line: color-mix(in srgb, var(--logo-grey) 35%, var(--bg)); --idle: var(--logo-grey);
+            --accent: #d0874e; --accent-ink: #1a1714; --soft: color-mix(in srgb, #d0874e 12%, var(--card));
+            --btn: #f4efe6; --btn-ink: #1a1a1a;
+            --warn: #e0b35c; --err: #f08a7e; --ok: #8fd19e; }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: 72px; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 820px; margin: 0 auto; padding: 28px 20px 80px; }
+  header.top { text-align: center; margin: 4px 0 18px; }
+  header.top .logo { display: inline-block; width: 220px; max-width: 70%; height: auto; }
+  h1 { margin: 0 0 6px; line-height: 0; }
+  .lede { color: var(--muted); margin: 0; }
+  @media (prefers-color-scheme: dark) {
+    /* the logo is dark ink on transparent: give it a light tile so it stays visible */
+    header.top .logo { background: #f4f4f5; border-radius: 12px; padding: 12px 16px; }
+  }
+  /* step bar */
+  .steps { position: sticky; top: 0; z-index: 5; display: flex; gap: 4px; padding: 10px 0; margin: 0 0 14px;
+           background: var(--bg); border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .steps a { display: flex; align-items: center; gap: 7px; flex: 1; min-width: max-content; padding: 7px 10px;
+             border-radius: 8px; color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 550; }
+  .steps a:hover { background: var(--card); color: var(--ink); }
+  .steps a.current { background: var(--card); color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent), 0 0 0 1px var(--line); }
+  .steps .dot { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; flex: none;
+                font-size: 11px; border: 1.5px solid var(--idle); color: var(--muted); }
+  .steps a.done .dot { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .steps a.done .dot::after { content: "✓"; } .steps a.done .dot span { display: none; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+            padding: 18px 20px; margin-bottom: 12px; }
+  h2 { font-size: 16px; font-weight: 650; margin: 0 0 2px; display: flex; gap: 8px; align-items: baseline; }
+  h2 .n { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 650; }
+  h2 .opt { font-size: 12px; font-weight: 500; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 8px; }
+  h3 { font-size: 13px; font-weight: 650; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 0 6px; }
+  .hint { color: var(--muted); font-size: 13.5px; margin: 0 0 12px; }
+  label { display: block; font-size: 13.5px; font-weight: 600; margin: 12px 0 4px; }
+  textarea, input[type=text], input[type=search], select { width: 100%; font: inherit; color: inherit; background: var(--field);
+            border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; }
+  textarea { min-height: 88px; resize: vertical; }
+  textarea.tall { min-height: 200px; font: 12.5px/1.45 ui-monospace, Menlo, monospace; }
+  textarea:focus, input:focus, select:focus, button:focus-visible, .steps a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  /* blueprint picker */
+  .picker-top { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+  .picker-top input { flex: 1; min-width: 200px; width: auto; }
+  .selected { font-size: 13.5px; color: var(--muted); } .selected b { color: var(--ink); }
+  .group { margin-top: 12px; } .group[hidden] { display: none; }
+  .group h4 { font-size: 12px; font-weight: 600; color: var(--muted); margin: 0 0 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--line); background: var(--field); color: inherit; border-radius: 7px;
+          padding: 5px 10px; font: inherit; font-size: 13.5px; cursor: pointer; }
+  .chip:hover { border-color: var(--muted); }
+  .chip[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .chip .rank { font-size: 11px; opacity: .85; margin-left: 5px; }
+  .empty { font-size: 13.5px; color: var(--muted); margin-top: 10px; }
+  /* sliders */
+  .trait { display: grid; grid-template-columns: 150px 1fr 40px; gap: 12px; align-items: center; margin: 10px 0 2px; }
+  .trait b { font-size: 13.5px; }
+  .trait output { text-align: right; font-variant-numeric: tabular-nums; }
+  .poles { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin: 0 52px 6px 162px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .params { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-top: 12px; }
+  .param { border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+  .param span { display: block; color: var(--muted); font-size: 12px; }
+  .param strong { font-variant-numeric: tabular-nums; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+  .row input[type=text] { flex: 1; min-width: 180px; width: auto; }
+  button.primary, button.secondary { font: inherit; font-size: 14px; font-weight: 600; border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+  button.primary { background: var(--btn); color: var(--btn-ink); border: 1px solid var(--btn); }
+  button.primary:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  button.secondary { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+  button.secondary:hover { border-color: var(--muted); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .status { font-size: 13.5px; color: var(--muted); }
+  .status.err { color: var(--err); } .status.ok { color: var(--ok); }
+  pre.report { white-space: pre-wrap; background: var(--field); border: 1px solid var(--line); border-radius: 8px;
+               padding: 12px; font: 12.5px/1.45 ui-monospace, Menlo, monospace; margin: 12px 0 0; max-height: 320px; overflow: auto; }
+  .line-err { color: var(--err); } .line-warn { color: var(--warn); }
+  details { margin-top: 10px; } details summary { cursor: pointer; color: var(--muted); font-size: 13.5px; }
+  details.more { display: inline; margin: 0; } details.more summary { display: inline; color: var(--accent); }
+  details.more[open] p { margin: 6px 0 0; }
+  .methods { display: grid; gap: 6px; margin-top: 6px; }
+  .method { display: grid; grid-template-columns: 22px 1fr; gap: 6px; border: 1px solid var(--line); border-radius: 8px;
+            padding: 9px 12px; cursor: pointer; font-weight: normal; margin: 0; }
+  .method:has(input:checked) { border-color: var(--accent); background: var(--soft); }
+  .method:has(input:disabled) { opacity: .6; cursor: not-allowed; }
+  .method input { margin-top: 4px; accent-color: var(--accent); }
+  .method b { display: block; font-weight: 600; } .method small { color: var(--muted); font-size: 13px; }
+  .badge { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+           background: var(--soft); color: var(--accent); border-radius: 4px; padding: 1px 6px; margin-left: 6px; }
+  .panel { border-left: 2px solid var(--accent); padding: 2px 0 2px 14px; margin: 12px 0 0; }
+  ::selection { background: color-mix(in srgb, var(--logo-rust) 25%, transparent); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 6px; }
+  td { padding: 5px 6px; border-bottom: 1px solid var(--line); } td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .note { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  code { font-size: 12.5px; }
+  [hidden] { display: none !important; }
+  @media (max-width: 560px) {
+    .trait { grid-template-columns: 1fr 40px; } .trait input { grid-column: 1 / -1; grid-row: 2; }
+    .poles { margin: 0 0 6px; } .steps a { flex: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <h1><img class="logo" src="/logo.png" alt="Pessoa Framework" width="1159" height="522"></h1>
+    <p class="lede">Design a heteronym. Claude writes it; the Studio saves it.</p>
+  </header>
+  <nav class="steps" id="steps" aria-label="Steps">
+    <a href="#s1" data-step="1"><span class="dot"><span>1</span></span>Character</a>
+    <a href="#s2" data-step="2"><span class="dot"><span>2</span></span>Sources</a>
+    <a href="#s3" data-step="3"><span class="dot"><span>3</span></span>Job</a>
+    <a href="#s4" data-step="4"><span class="dot"><span>4</span></span>Personality</a>
+    <a href="#s5" data-step="5"><span class="dot"><span>5</span></span>Prompt</a>
+    <a href="#s6" data-step="6"><span class="dot"><span>6</span></span>Save</a>
+  </nav>
+
+  <!-- 1 -->
+  <section id="s1">
+    <h2><span class="n">1</span> Who is this character?</h2>
+    <p class="hint">Who they are and what you want them for. A few sentences.</p>
+    <textarea id="vision" placeholder="A retired lighthouse keeper turned code reviewer: patient, exacting, dry humour. I want them to review my pull requests."></textarea>
+    <label for="name">Name <span class="status">optional</span></label>
+    <input type="text" id="name" placeholder="e.g. Ana Lume" autocomplete="off">
+    <p class="status" id="nameStatus"></p>
+  </section>
+
+  <!-- 2 -->
+  <section id="s2">
+    <h2><span class="n">2</span> Source material <span class="opt">optional</span></h2>
+    <p class="hint">What the character grows from. Everything here goes to Claude with the prompt.</p>
+
+    <h3>Notes</h3>
+    <textarea id="notes" placeholder="Paste notes, a scene, a letter… (optional)"></textarea>
+
+    <h3>Files</h3>
+    <div class="hint">Any .md, .txt, .docx or .pdf, from anywhere.
+      <details class="more"><summary>More</summary><p>Scanned PDFs have no text and are refused. Files are copied
+      into a <b>source set</b> in the framework (<code>prima/</code>, never uploaded to git); your own folders are only
+      read. Reopen a set later from the list to reuse its digests.</p></details></div>
+    <div class="row">
+      <label for="setPick" style="margin:0">Source set</label>
+      <select id="setPick" style="width:auto" aria-label="Source set"></select>
+      <span class="status" id="setStatus"></span>
+    </div>
+    <div class="row">
+      <input type="file" id="fileInput" multiple accept=".md,.txt,.docx,.pdf" hidden>
+      <button class="secondary" id="addFiles">Add files…</button>
+      <span class="status" id="filesStatus"></span>
+    </div>
+    <details id="browseBox">
+      <summary>Add files from a folder (choose which ones)</summary>
+      <p class="hint" id="folderHint">Type a path, Browse, tick files. Repeat for more folders.</p>
+      <div class="row">
+        <input type="text" id="folder" placeholder="/Users/you/Documents/my-source" autocomplete="off" aria-label="Folder to browse">
+        <button class="secondary" id="browse">Browse</button>
+      </div>
+      <p class="status" id="browseStatus"></p>
+      <div id="browseResult" hidden>
+        <table id="browseTable"></table>
+        <div class="row">
+          <button class="secondary" id="tickAll">Tick all</button>
+          <button class="primary" id="addTicked">Add ticked files to the set</button>
+        </div>
+      </div>
+    </details>
+
+    <div id="scanResult" hidden>
+      <h3>Files in this set</h3>
+      <table id="fileTable"></table>
+      <p class="note" id="scanNote"></p>
+
+      <label>How should Claude read these files?</label>
+      <div class="methods" role="radiogroup">
+        <label class="method"><input type="radio" name="method" value="none" checked>
+          <span><b>Don't use the files</b><small>Only the notes above.</small></span></label>
+        <label class="method"><input type="radio" name="method" value="full" id="methodFull">
+          <span><b>Full text <span class="badge" id="recFull" hidden>recommended</span></b>
+          <small id="fullInfo">Every word, verbatim. Most faithful.</small></span></label>
+        <label class="method"><input type="radio" name="method" value="digest">
+          <span><b>AI digest <span class="badge" id="recDigest" hidden>recommended</span></b>
+          <small>A compact map of one character that Claude writes once from the text. Small, but lossy.</small></span></label>
+        <label class="method"><input type="radio" name="method" value="graph">
+          <span><b>Python graph <span class="badge" id="recGraph" hidden>also good</span></b>
+          <small>Built here, no model. Exact quotes, but only names and who appears together.</small></span></label>
+        <label class="method"><input type="radio" name="method" value="network">
+          <span><b>Word network (whole text)</b>
+          <small>No name needed: the shape of the whole text (central words, names, themes). For a character inspired by it.</small></span></label>
+      </div>
+
+      <div class="panel" id="panelNetwork" hidden>
+        <div class="row">
+          <select id="ovUnit" style="width:auto" aria-label="Unit for the overview">
+            <option value="auto">unit: automatic</option><option value="sentence">unit: sentence (prose)</option>
+            <option value="line">unit: line (verse)</option></select>
+          <button class="secondary" id="showOverview">Show what Claude will get</button>
+          <span class="status" id="overviewStatus"></span>
+        </div>
+        <p class="note">Built when you copy the prompt; rebuilt after the files change.</p>
+        <pre class="report" id="overviewReport" hidden></pre>
+      </div>
+
+      <div class="panel" id="panelFull" hidden>
+        <p class="status" id="fullStatus"></p>
+      </div>
+
+      <div class="panel" id="panelDigest" hidden>
+        <label for="digestPick">Use a saved digest</label>
+        <select id="digestPick"></select>
+        <details id="digestBuild">
+          <summary>Build a new digest with Claude</summary>
+          <p class="hint">Name the subject as the text spells it, copy the prompt into a new Claude chat, paste its JSON here. Quotes are checked.</p>
+          <div class="row">
+            <input type="text" id="digestSubject" placeholder="Subject, e.g. Mara Quell" aria-label="Digest subject">
+            <button class="secondary" id="copyDigestPrompt">Copy digest prompt</button>
+          </div>
+          <p class="status" id="digestPromptStatus"></p>
+          <textarea id="digestJson" class="tall" placeholder='{"subject": "…", "nodes": […], "edges": […]}' aria-label="Digest JSON from Claude"></textarea>
+          <div class="row">
+            <button class="primary" id="saveDigest">Save digest</button>
+            <label style="margin:0;font-weight:normal"><input type="checkbox" id="digestOverwrite"> replace a digest with the same subject</label>
+          </div>
+          <pre class="report" id="digestReport" hidden></pre>
+        </details>
+      </div>
+
+      <div class="panel" id="panelGraph" hidden>
+        <label for="graphPick">Use a saved graph</label>
+        <select id="graphPick"></select>
+        <details id="graphBuild">
+          <summary>Build a new graph</summary>
+          <div class="row">
+            <input type="text" id="graphSubject" placeholder="Subject, e.g. Mara Quell" aria-label="Graph subject">
+            <button class="primary" id="buildGraph">Build graph</button>
+          </div>
+          <label style="font-weight:normal"><input type="checkbox" id="graphOverwrite"> replace a graph with the same subject</label>
+          <pre class="report" id="graphReport" hidden></pre>
+        </details>
+      </div>
+
+      <details id="explore">
+        <summary>Explore the words first (optional)</summary>
+        <p class="hint">Look up a word, or two for the path between them. Add what you find to the prompt.</p>
+        <div class="row">
+          <select id="unit" style="width:auto" aria-label="Unit">
+            <option value="auto">unit: automatic</option><option value="sentence">unit: sentence (prose)</option>
+            <option value="line">unit: line (verse)</option></select>
+          <button class="secondary" id="buildNetwork">Build word network</button>
+          <span class="status" id="networkStatus"></span>
+        </div>
+        <div class="row">
+          <input type="text" id="qNode" placeholder="A word or name, e.g. Mara" aria-label="Word to look up">
+          <input type="text" id="qTarget" placeholder="Path to (optional), e.g. Ilse" aria-label="Second word">
+          <button class="secondary" id="query">Look up</button>
+        </div>
+        <pre class="report" id="queryReport" hidden></pre>
+        <div class="row"><button class="secondary" id="addFinding" disabled>Add this result to the prompt</button></div>
+        <label for="findings">Findings that go into the prompt</label>
+        <textarea id="findings" placeholder="Results you add appear here; you can edit them."></textarea>
+      </details>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="s3">
+    <h2><span class="n">3</span> What is their job?</h2>
+    <p class="hint">Pick one or more. The first is the main job; the others add expertise.</p>
+    <div class="picker-top">
+      <input type="search" id="bpSearch" placeholder="Search jobs, e.g. nurse, AI, writer" aria-label="Search blueprints" autocomplete="off">
+      <span class="selected" id="bpSelected">Nothing picked yet</span>
+    </div>
+    <div id="blueprints" role="group" aria-label="Blueprints"></div>
+    <p class="empty" id="bpEmpty" hidden>No job matches. Pick <b>General</b> and describe the job in step 1.</p>
+  </section>
+
+  <!-- 4 -->
+  <section id="s4">
+    <h2><span class="n">4</span> Personality</h2>
+    <p class="hint">The Big Five (30 facets) shape how the character thinks and how the model is tuned.</p>
+    <div class="methods" role="radiogroup" aria-label="Personality">
+      <label class="method"><input type="radio" name="pmode" value="auto" checked>
+        <span><b>Automatic <span class="badge">recommended</span></b>
+        <small>Claude scores all 30 facets from your description and sources, each with a reason.</small></span></label>
+      <label class="method"><input type="radio" name="pmode" value="tune">
+        <span><b>Tune with sliders</b>
+        <small>You set a target per trait; Claude scores the facets around it.</small></span></label>
+    </div>
+    <p class="note" id="autoNote">The parameters appear at Preview, in step 6.</p>
+    <div id="tune" hidden>
+      <div id="traits"></div>
+      <p class="hint" style="margin-top:12px">Parameters from these targets:</p>
+      <div class="params" id="params" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section id="s5">
+    <h2><span class="n">5</span> Ask Claude to write it</h2>
+    <p class="hint">Copy it, paste it into a new Claude chat, then bring the answer to step 6.</p>
+    <div class="row">
+      <button class="primary" id="copy">Copy prompt for Claude</button>
+      <span class="status" id="copyStatus"></span>
+    </div>
+    <details><summary>Show the prompt</summary><textarea id="prompt" class="tall" readonly aria-label="Prompt"></textarea></details>
+  </section>
+
+  <!-- 6 -->
+  <section id="s6">
+    <h2><span class="n">6</span> Review and save</h2>
+    <p class="hint">Paste Claude's answer. Preview writes nothing; Save creates the character.</p>
+    <textarea id="blob" class="tall" placeholder="--- FILE: skin.md ---&#10;..." aria-label="Claude's answer"></textarea>
+    <div class="row">
+      <button class="secondary" id="preview">Preview</button>
+      <button class="primary" id="save" disabled>Save character</button>
+      <span class="status" id="saveStatus" aria-live="polite"></span>
+    </div>
+    <div id="result" hidden>
+      <h3>Resulting personality</h3>
+      <table id="resultTable"></table>
+      <div class="params" id="resultParams"></div>
+    </div>
+    <p class="status err" id="cutHint" hidden></p>
+    <pre class="report" id="report" hidden></pre>
+    <div id="ready" hidden>
+      <h3>Your character is ready</h3>
+      <p class="hint">Paste this as the first message of a new chat to talk to them (or use <b>load_character</b> in
+        Claude Desktop). Saved in <code id="readyPath"></code>.</p>
+      <div class="row">
+        <button class="primary" id="copyActivation">Copy activation prompt</button>
+        <span class="status" id="activationStatus"></span>
+      </div>
+      <details><summary>Show the activation prompt</summary><textarea id="activation" class="tall" readonly aria-label="Activation prompt"></textarea></details>
+    </div>
+  </section>
+</main>
+
+<script>
+const TOKEN = "__TOKEN__";
+const TRAITS = [
+  ["openness", "Openness", "conventional, concrete", "curious, inventive"],
+  ["conscientiousness", "Conscientiousness", "loose, spontaneous", "exacting, disciplined"],
+  ["extraversion", "Extraversion", "reserved, terse", "outgoing, expansive"],
+  ["agreeableness", "Agreeableness", "blunt, challenging", "warm, accommodating"],
+  ["neuroticism", "Neuroticism", "calm, steady", "anxious, reactive"],
+];
+const PARAM_LABELS = {temperature: "temperature", top_p: "top_p", frequency_penalty: "frequency penalty",
+                      max_tokens: "max tokens", confidence_threshold: "confidence"};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const picked = [];
+let taken = [], previewed = "", scanned = null, lastQuery = "";
+
+async function api(path, body) {
+  const r = await fetch(path, {method: "POST", headers: {"Content-Type": "application/json", "X-Studio-Token": TOKEN},
+                               body: JSON.stringify(body || {})});
+  let data;
+  try { data = await r.json(); } catch { throw new Error(`${r.status} ${r.statusText}`); }
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+function status(id, text, kind) { const el = $(id); el.textContent = text; el.className = "status " + (kind || ""); }
+function report(id, text) {
+  $(id).innerHTML = text.split("\n").map(l => /ERROR|FAILED|NOT found/.test(l) ? `<span class="line-err">${esc(l)}</span>`
+    : /WARN/.test(l) ? `<span class="line-warn">${esc(l)}</span>` : esc(l)).join("\n");
+  $(id).hidden = false;
+}
+async function copyText(text, statusId, okMsg, fallbackArea) {
+  try { await navigator.clipboard.writeText(text); status(statusId, okMsg, "ok"); }
+  catch { if (fallbackArea) { fallbackArea.closest("details").open = true; fallbackArea.value = text; fallbackArea.select(); }
+          status(statusId, "Could not reach the clipboard: the text is selected below, press Cmd/Ctrl-C.", "err"); }
+}
+const folder = () => $("folder").value.trim();
+const method = () => document.querySelector("input[name=method]:checked").value;
+let currentSet = "", browsed = null;
+
+/* ---- step 2B: the source set ---- */
+async function loadSets(select) {
+  const {sets} = await api("/api/sets");
+  $("setPick").innerHTML = `<option value="">New set (created when you add a file)</option>`
+    + sets.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  $("setPick").value = select || "";
+}
+$("setPick").addEventListener("change", async () => {
+  currentSet = $("setPick").value;
+  if (currentSet) await showSet(await api("/api/set", {set: currentSet}));
+  else { scanned = null; $("scanResult").hidden = true; status("setStatus", ""); }
+});
+async function ensureSet() {
+  if (currentSet) return currentSet;
+  const s = await api("/api/set_new");
+  currentSet = s.set; await loadSets(currentSet);
+  return currentSet;
+}
+function addedMessage(r) {
+  return (r.added.length ? `Added ${r.added.join(", ")}. ` : "")
+    + (r.errors.length ? `Not added: ${r.errors.map(e => `${e.name} (${e.error})`).join("; ")}` : "");
+}
+
+$("addFiles").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", async () => {
+  const list = [...$("fileInput").files];
+  if (!list.length) return;
+  status("filesStatus", "Adding…");
+  try {
+    const files = await Promise.all(list.map(f => new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res({name: f.name, data: r.result.split(",")[1] || ""});
+      r.onerror = () => rej(new Error(`could not read ${f.name}`));
+      r.readAsDataURL(f);
+    })));
+    const r = await api("/api/set_upload", {set: await ensureSet(), files});
+    status("filesStatus", addedMessage(r), r.errors.length ? "err" : "ok");
+    await showSet(r);
+  } catch (e) { status("filesStatus", e.message, "err"); }
+  $("fileInput").value = "";
+});
+
+$("browse").addEventListener("click", async () => {
+  if (!folder()) return status("browseStatus", "Type a folder path first.", "err");
+  status("browseStatus", "Reading the folder…");
+  try {
+    const b = browsed = await api("/api/browse", {folder: folder()});
+    $("browseTable").innerHTML = b.files.length ? b.files.map((f, i) => `<tr>
+        <td><label style="margin:0;font-weight:normal"><input type="checkbox" class="pick" data-i="${i}" ${f.error ? "disabled" : ""}> ${esc(f.rel)}</label></td>
+        <td class="num">${f.error ? `<span class="line-err">unreadable: ${esc(f.error)}</span>` : "~" + f.tokens.toLocaleString() + " tokens"}</td></tr>`).join("")
+      : `<tr><td>No .md, .txt, .docx or .pdf files in this folder.</td></tr>`;
+    $("browseResult").hidden = false;
+    status("browseStatus", `${b.files.length} file(s) in ${b.folder}` + (b.skipped.length ? `; other types not shown: ${b.skipped.length}` : ""), "ok");
+  } catch (e) { $("browseResult").hidden = true; status("browseStatus", e.message, "err"); }
+});
+$("tickAll").addEventListener("click", () => document.querySelectorAll(".pick:not(:disabled)").forEach(c => c.checked = true));
+$("addTicked").addEventListener("click", async () => {
+  const paths = [...document.querySelectorAll(".pick:checked")].map(c => browsed.files[+c.dataset.i].path);
+  if (!paths.length) return status("browseStatus", "Tick at least one file.", "err");
+  try {
+    const r = await api("/api/set_add_paths", {set: await ensureSet(), paths});
+    status("browseStatus", addedMessage(r), r.errors.length ? "err" : "ok");
+    document.querySelectorAll(".pick:checked").forEach(c => c.checked = false);
+    await showSet(r);
+  } catch (e) { status("browseStatus", e.message, "err"); }
+});
+
+function fillPick(id, items, emptyText) {
+  $(id).innerHTML = items.length ? items.map(d => `<option value="${esc(d.name)}">${esc(d.name)}`
+    + (d.error ? " (unreadable)" : ` (${esc(d.subject)}: ${d.nodes} nodes, ${d.edges} links)`) + "</option>").join("")
+    : `<option value="">${emptyText}</option>`;
+}
+async function refreshSet() { if (currentSet) await showSet(await api("/api/set", {set: currentSet})); }
+async function showSet(s) {
+  scanned = s;
+  $("fileTable").innerHTML = s.files.map(f => `<tr><td>${esc(f.path)}</td>
+      <td class="num">${f.error ? `<span class="line-err">unreadable: ${esc(f.error)}</span>` : "~" + f.tokens.toLocaleString() + " tokens"}</td>
+      <td class="num"><button class="secondary remove" data-file="${esc(f.path)}" aria-label="Remove ${esc(f.path)}">Remove</button></td></tr>`).join("")
+    || `<tr><td>No files yet: add some above.</td></tr>`;
+  $("scanNote").textContent = [
+    `${s.files.length} file(s), ~${s.tokens.toLocaleString()} tokens in total.`,
+    `Saved digests: ${s.digests.filter(d => !d.auto).length}, saved graphs: ${s.digests.filter(d => d.auto).length}.`,
+    `Word network: ${s.network ? "built" : "not built"}.`, `Stored in ${s.location}`].join(" ");
+  fillPick("digestPick", s.digests.filter(d => !d.auto), "No digest saved yet: build one below");
+  fillPick("graphPick", s.digests.filter(d => d.auto), "No graph saved yet: build one below");
+  const big = s.tokens > s.advice_tokens, tooBig = s.tokens > s.limit_tokens;
+  $("recFull").hidden = big; $("recDigest").hidden = !big; $("recGraph").hidden = !big;
+  $("methodFull").disabled = tooBig;
+  if (tooBig && method() === "full") document.querySelector("input[name=method][value=none]").checked = true;
+  $("fullInfo").textContent = tooBig
+    ? `Not available: ~${s.tokens.toLocaleString()} tokens, more than one chat holds. Use a digest or graph, or remove files.`
+    : `Every word, verbatim (~${s.tokens.toLocaleString()} tokens).`
+      + (big ? " Long: the chat gets slow and late details blur." : " Most faithful.");
+  $("networkStatus").textContent = s.network ? "Already built: you can look up words now." : "";
+  $("scanResult").hidden = false;
+  status("setStatus", `${s.files.length} file(s)`, "ok");
+  if (!s.files.length) document.querySelector("input[name=method][value=none]").checked = true;
+  showMethod(); updateSteps();
+}
+$("fileTable").addEventListener("click", async e => {
+  const b = e.target.closest(".remove"); if (!b) return;
+  try { await showSet(await api("/api/set_remove", {set: currentSet, file: b.dataset.file})); }
+  catch (err) { status("setStatus", err.message, "err"); }
+});
+
+function showMethod() {
+  const m = method();
+  $("panelFull").hidden = m !== "full"; $("panelDigest").hidden = m !== "digest"; $("panelGraph").hidden = m !== "graph";
+  $("panelNetwork").hidden = m !== "network";
+  if (m === "full" && scanned) status("fullStatus", `${scanned.files.filter(f => !f.error).length} readable file(s) will be included.`);
+  if (m === "digest" && !$("digestPick").value) $("digestBuild").open = true;
+  if (m === "graph" && !$("graphPick").value) $("graphBuild").open = true;
+}
+document.querySelectorAll("input[name=method]").forEach(r => r.addEventListener("change", showMethod));
+
+$("copyDigestPrompt").addEventListener("click", async () => {
+  try {
+    const {prompt, chars} = await api("/api/digest_prompt", {set: currentSet, subject: $("digestSubject").value});
+    await copyText(prompt, "digestPromptStatus", `Copied (${chars.toLocaleString()} characters). Paste it into a new Claude chat, then paste the JSON answer below.`);
+  } catch (e) { status("digestPromptStatus", e.message, "err"); }
+});
+$("saveDigest").addEventListener("click", async () => {
+  try {
+    const {report: r} = await api("/api/save_digest", {set: currentSet, digest: $("digestJson").value, overwrite: $("digestOverwrite").checked});
+    report("digestReport", r);
+    if (r.startsWith("SAVED")) { const name = r.split("\n")[0].split(/[\\/]/).pop(); await refreshSet(); $("digestPick").value = name; }
+  } catch (e) { report("digestReport", "ERROR: " + e.message); }
+});
+$("buildGraph").addEventListener("click", async () => {
+  try {
+    const {report: r} = await api("/api/graph", {set: currentSet, subject: $("graphSubject").value, overwrite: $("graphOverwrite").checked});
+    report("graphReport", r);
+    if (r.startsWith("SAVED")) { const name = r.split("\n")[0].split(/[\\/]/).pop(); await refreshSet(); $("graphPick").value = name; }
+  } catch (e) { report("graphReport", "ERROR: " + e.message); }
+});
+
+$("buildNetwork").addEventListener("click", async () => {
+  status("networkStatus", "Building…");
+  try {
+    const {report: r} = await api("/api/network", {set: currentSet, unit: $("unit").value});
+    report("queryReport", r); status("networkStatus", "Built. Look up a word below.", "ok");
+    lastQuery = ""; $("addFinding").disabled = true;
+  } catch (e) { status("networkStatus", e.message, "err"); }
+});
+$("query").addEventListener("click", async () => {
+  try {
+    const {report: r} = await api("/api/query", {set: currentSet, node: $("qNode").value, target: $("qTarget").value});
+    report("queryReport", r);
+    lastQuery = r.startsWith("ERROR") ? "" : r; $("addFinding").disabled = !lastQuery;
+  } catch (e) { report("queryReport", "ERROR: " + e.message); lastQuery = ""; $("addFinding").disabled = true; }
+});
+$("addFinding").addEventListener("click", () => {
+  $("findings").value = ($("findings").value.trim() ? $("findings").value.trim() + "\n\n" : "") + lastQuery;
+  $("addFinding").disabled = true;
+});
+
+$("showOverview").addEventListener("click", async () => {
+  status("overviewStatus", "Building…");
+  try {
+    const {report: r} = await api("/api/overview", {set: currentSet, unit: $("ovUnit").value});
+    report("overviewReport", r); status("overviewStatus", "");
+    await refreshSet();
+  } catch (e) { status("overviewStatus", e.message, "err"); }
+});
+
+function primaChoice() {
+  const m = scanned ? method() : "none";
+  return {notes: $("notes").value, set: currentSet, method: m, findings: $("findings").value, unit: $("ovUnit").value,
+          digest: m === "digest" ? $("digestPick").value : m === "graph" ? $("graphPick").value : ""};
+}
+
+/* ---- step 3: blueprints ---- */
+// Display names and groups for the shipped blueprints; any other file in Seeds/ shows under "Your own".
+const BP_NAMES = {ai_engineer: "AI Engineer", ai_governance_officer: "AI Governance Officer",
+  ai_strategy_consultant: "AI Strategy Consultant", cloud_devops_engineer: "Cloud & DevOps Engineer",
+  ev_specialist: "EV Specialist", red_team_reviewer: "Red-Team Reviewer"};
+const BP_GROUPS = [
+  ["Tech & AI", ["ai_engineer", "ai_strategy_consultant", "ai_governance_officer", "coder", "data_scientist",
+                 "cloud_devops_engineer", "security_auditor", "red_team_reviewer", "fintech_engineer",
+                 "robotics_engineer", "product_architect", "technical_writer"]],
+  ["Business", ["founder", "independent_consultant", "sales_executive", "growth_marketer", "trader",
+                "supply_chain_analyst", "travel_advisor"]],
+  ["Creative & research", ["artist", "editor", "worldbuilder", "researcher", "influencer"]],
+  ["Health, education & care", ["nurse", "educator", "healthcare_reimbursement_specialist"]],
+  ["Energy & building", ["renewable_energy_engineer", "sustainability_specialist", "ev_specialist",
+                         "construction_project_manager"]],
+  ["Open", ["general"]],
+];
+const bpName = n => BP_NAMES[n] || n.split("_").map(w => w[0].toUpperCase() + w.slice(1)).join(" ");
+function renderBlueprints(names) {
+  const known = new Set(BP_GROUPS.flatMap(([, ns]) => ns));
+  const groups = BP_GROUPS.map(([g, ns]) => [g, ns.filter(n => names.includes(n))])
+    .concat([["Your own", names.filter(n => !known.has(n))]]).filter(([, ns]) => ns.length);
+  $("blueprints").innerHTML = groups.map(([g, ns]) => `<div class="group"><h4>${esc(g)}</h4><div class="chips">`
+    + ns.map(n => `<button type="button" class="chip" data-name="${esc(n)}" data-label="${esc(bpName(n).toLowerCase())} ${esc(n)}" aria-pressed="false">${esc(bpName(n))}</button>`).join("")
+    + "</div></div>").join("");
+  $("blueprints").addEventListener("click", e => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    const i = picked.indexOf(b.dataset.name);
+    i >= 0 ? picked.splice(i, 1) : picked.push(b.dataset.name);
+    paintBlueprints();
+  });
+  $("bpSearch").addEventListener("input", filterBlueprints);
+}
+function paintBlueprints() {
+  document.querySelectorAll(".chip").forEach(c => {
+    const r = picked.indexOf(c.dataset.name);
+    c.setAttribute("aria-pressed", r >= 0);
+    c.innerHTML = esc(bpName(c.dataset.name)) + (r >= 0 ? `<span class="rank">${r === 0 ? "main" : "+"}</span>` : "");
+  });
+  $("bpSelected").innerHTML = picked.length
+    ? "Picked: " + picked.map((n, i) => `<b>${esc(bpName(n))}</b>` + (i === 0 ? " (main)" : "")).join(" + ")
+    : "Nothing picked yet";
+  updateSteps();
+}
+function filterBlueprints() {
+  const q = $("bpSearch").value.trim().toLowerCase();
+  let any = false;
+  document.querySelectorAll("#blueprints .group").forEach(g => {
+    let shown = 0;
+    g.querySelectorAll(".chip").forEach(c => {
+      const hit = !q || c.dataset.label.includes(q) || c.getAttribute("aria-pressed") === "true";
+      c.hidden = !hit; shown += hit;
+    });
+    g.hidden = !shown; any = any || shown > 0;
+  });
+  $("bpEmpty").hidden = any;
+}
+
+/* ---- step bar ---- */
+let promptCopied = false, characterSaved = false;
+function updateSteps() {
+  const done = {
+    1: !!$("vision").value.trim(),
+    2: !!$("notes").value.trim() || !!(scanned && scanned.files.length),
+    3: picked.length > 0,
+    4: !!$("vision").value.trim() && picked.length > 0,  // Automatic is preselected, so it counts once 1 and 3 are done
+    5: promptCopied,
+    6: characterSaved,
+  };
+  document.querySelectorAll("#steps a").forEach(a => a.classList.toggle("done", !!done[a.dataset.step]));
+}
+// The current step is the last section whose top has passed just below the bar;
+// at the very bottom of the page it is the last section.
+let clickedUntil = 0;  // after a click on a step, keep that step current while the page scrolls there
+function markCurrent() {
+  if (Date.now() < clickedUntil) return;
+  const secs = [...document.querySelectorAll("main > section")];
+  const line = $("steps").getBoundingClientRect().bottom + 24;
+  let cur = secs[0];
+  for (const sec of secs) if (sec.getBoundingClientRect().top <= line) cur = sec;
+  if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) cur = secs[secs.length - 1];
+  document.querySelectorAll("#steps a").forEach(a => a.classList.toggle("current", a.getAttribute("href") === "#" + cur.id));
+}
+$("steps").addEventListener("click", e => {
+  const a = e.target.closest("a"); if (!a) return;
+  e.preventDefault();
+  const sec = document.querySelector(a.getAttribute("href"));
+  const top = () => Math.round(sec.getBoundingClientRect().top + window.scrollY - $("steps").offsetHeight - 8);
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({top: top(), behavior: calm ? "auto" : "smooth"});
+  // Some browsers drop a smooth scroll (a background tab, a busy page): land there anyway.
+  setTimeout(() => { if (Math.abs(window.scrollY - Math.min(top(), document.documentElement.scrollHeight - innerHeight)) > 4) window.scrollTo(0, top()); }, 700);
+  clickedUntil = Date.now() + 1000;
+  document.querySelectorAll("#steps a").forEach(x => x.classList.toggle("current", x === a));
+  const field = sec.querySelector("textarea, input:not([type=hidden]), button");
+  if (field) setTimeout(() => field.focus({preventScroll: true}), 400);
+});
+window.addEventListener("scroll", markCurrent, {passive: true});
+window.addEventListener("resize", markCurrent);
+document.addEventListener("input", updateSteps);
+
+/* ---- step 4: Big Five ---- */
+const tuning = () => document.querySelector("input[name=pmode]:checked").value === "tune";
+document.querySelectorAll("input[name=pmode]").forEach(r => r.addEventListener("change", () => {
+  $("tune").hidden = !tuning(); $("autoNote").hidden = tuning();
+}));
+const scores = () => Object.fromEntries(TRAITS.map(([k]) => [k, +$(k).value]));
+function renderTraits() {
+  $("traits").innerHTML = TRAITS.map(([k, label, low, high]) => `
+    <div class="trait"><b><label for="${k}" style="margin:0">${label}</label></b>
+      <input type="range" id="${k}" min="1" max="5" step="0.1" value="3">
+      <output id="${k}Out" for="${k}">3.0</output></div>
+    <div class="poles"><span>${low}</span><span>${high}</span></div>`).join("");
+  TRAITS.forEach(([k]) => $(k).addEventListener("input", () => { $(k + "Out").textContent = (+$(k).value).toFixed(1); refreshParams(); }));
+}
+let paramTimer;
+function refreshParams() {
+  clearTimeout(paramTimer);
+  paramTimer = setTimeout(async () => {
+    try {
+      const {parameters} = await api("/api/params", {scores: scores()});
+      $("params").innerHTML = Object.entries(parameters).map(([k, v]) =>
+        `<div class="param"><span>${PARAM_LABELS[k] || k}</span><strong>${v}</strong></div>`).join("");
+    } catch (e) { $("params").textContent = e.message; }
+  }, 120);
+}
+
+/* ---- step 1 name check ---- */
+let nameTimer;
+$("name").addEventListener("input", () => {
+  $("save").disabled = true; previewed = "";
+  clearTimeout(nameTimer);
+  nameTimer = setTimeout(async () => {
+    try {
+      const {folder: f, taken: t} = await api("/api/name", {name: $("name").value});
+      status("nameStatus", !f ? "" : t ? `A character named ${f} already exists: pick another name.` : `Will be saved as ${f}.`, t ? "err" : "");
+    } catch (e) { status("nameStatus", e.message, "err"); }
+  }, 200);
+});
+
+/* ---- step 5: prompt ---- */
+$("copy").addEventListener("click", async () => {
+  if (!$("vision").value.trim()) return status("copyStatus", "Describe the character in step 1 first.", "err");
+  if (!picked.length) return status("copyStatus", "Pick at least one blueprint in step 3.", "err");
+  const p = primaChoice();
+  if ((p.method === "digest" || p.method === "graph") && !p.digest)
+    return status("copyStatus", `Step 2: pick or build a ${p.method === "digest" ? "digest" : "graph"} first, or choose another method.`, "err");
+  try {
+    const {prompt, chars} = await api("/api/prompt", {vision: $("vision").value, name: $("name").value,
+                                                      prima: p, blueprints: picked, scores: tuning() ? scores() : null});
+    $("prompt").value = prompt; promptCopied = true; updateSteps();
+    await copyText(prompt, "copyStatus", `Copied (${chars.toLocaleString()} characters, ~${Math.round(chars / 4).toLocaleString()} tokens). Paste it into a new Claude chat.`, $("prompt"));
+  } catch (e) { status("copyStatus", e.message, "err"); }
+});
+
+/* ---- step 6: preview and save ---- */
+$("blob").addEventListener("input", () => { $("save").disabled = $("blob").value !== previewed; });
+$("preview").addEventListener("click", async () => {
+  status("saveStatus", "Checking…");
+  try {
+    const res = await api("/api/preview", {blob: $("blob").value, name: $("name").value, prima: primaChoice()});
+    const r = res.report;
+    report("report", r); showResult(res); showCutHint(res.missing);
+    const blocked = /already exists/.test(r);
+    previewed = blocked ? "" : $("blob").value;
+    $("save").disabled = blocked;
+    status("saveStatus", blocked ? "Pick another name in step 1, then preview again."
+      : /ERROR/.test(r) ? "It can be saved, but fix the ERROR lines first if you can."
+      : /WARN/.test(r) ? "It can be saved. Read the WARN lines first: ask Claude to fix them, or save as is."
+      : "Looks good. Nothing written yet.",
+      blocked || /ERROR/.test(r) ? "err" : /WARN/.test(r) ? "" : "ok");
+  } catch (e) {
+    $("save").disabled = true; $("report").hidden = true; $("result").hidden = true;
+    status("saveStatus", e.message, "err");
+    showCutHint(/JSONDecodeError|Expecting|Unterminated/.test(e.message) ? ["big_five.json"] : []);
+  }
+});
+function showCutHint(missing) {
+  $("cutHint").hidden = !missing.length;
+  if (missing.length) $("cutHint").textContent = `Missing or broken: ${missing.join(", ")}. This usually means the chat cut Claude's `
+    + `answer off. Ask Claude: "Your answer was cut off. Resend from --- FILE: ${missing[0]} --- to the end." Then paste that reply `
+    + `below the first one in this box and preview again: a file sent twice keeps the later version.`;
+}
+$("save").addEventListener("click", async () => {
+  $("save").disabled = true;
+  status("saveStatus", "Saving…");
+  try {
+    const res = await api("/api/save", {blob: $("blob").value, name: $("name").value, prima: primaChoice()});
+    const {report: r, name} = res;
+    report("report", r); showResult(res);
+    taken.push(name); previewed = "";
+    status("saveStatus", `Saved as ${name}.`, "ok"); characterSaved = true; updateSteps();
+    $("activation").value = res.activation; $("readyPath").textContent = `characters/${name}/`;
+    $("ready").hidden = false; $("ready").scrollIntoView({behavior: "smooth", block: "start"});
+  } catch (e) { status("saveStatus", e.message, "err"); }
+});
+
+$("copyActivation").addEventListener("click", () =>
+  copyText($("activation").value, "activationStatus", "Copied. Paste it as the first message of a new chat.", $("activation")));
+
+function showResult({traits, parameters}) {
+  if (!traits) { $("result").hidden = true; return; }
+  const target = tuning() ? scores() : null;
+  $("resultTable").innerHTML = `<tr><td><b>Trait (1-5)</b></td><td class="num"><b>Claude's score</b></td>`
+    + (target ? `<td class="num"><b>Your target</b></td>` : "") + "</tr>"
+    + TRAITS.map(([k, label]) => {
+        const off = target && Math.abs(traits[k] - target[k]) > 0.3;
+        return `<tr><td>${label}</td><td class="num${off ? " line-warn" : ""}">${traits[k].toFixed(2)}</td>`
+          + (target ? `<td class="num">${target[k].toFixed(1)}${off ? ' <span class="line-warn">off by more than 0.3</span>' : ""}</td>` : "") + "</tr>";
+      }).join("");
+  $("resultParams").innerHTML = Object.entries(parameters).map(([k, v]) =>
+    `<div class="param"><span>${PARAM_LABELS[k] || k}</span><strong>${v}</strong></div>`).join("");
+  $("result").hidden = false;
+}
+
+/* ---- start ---- */
+renderTraits(); refreshParams(); markCurrent();
+api("/api/info").then(({blueprints, characters, folder: f, folder_source}) => {
+  renderBlueprints(blueprints); paintBlueprints(); taken = characters;
+  if (f) { $("folder").value = f; $("folderHint").textContent = `From your ${folder_source}. Browse, tick files; repeat for more folders.`; }
+}).catch(e => status("copyStatus", e.message, "err"));
+loadSets().catch(e => status("setStatus", e.message, "err"));
+</script>
+</body>
+</html>

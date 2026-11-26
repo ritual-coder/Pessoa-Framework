@@ -3,7 +3,7 @@
 The "Psychosynthetic Calculus" turns a heteronym's Big Five profile into the
 LLM behavioural parameters written to ai_cabinet.yaml.
 
-The formulas are defined on a 1-5 trait scale (see templates/eve_master_prompt.md).
+The formulas are defined on a 1-5 trait scale (see docs/CALCULUS.md).
 Score files in the wild do not all use that scale or those key names, so every
 input is normalised to 1-5 before the math runs. Unrecognised input raises
 ScoreFormatError rather than silently falling back to a neutral profile.
@@ -207,24 +207,10 @@ class PersonalityConverter:
     """Handles the conversion logic between the layers of the Pessoa Framework."""
 
     @staticmethod
-    def calculate_layer3_params(big_five_scores, scale=None):
-        """Calculates Layer 3 behavioural parameters from a Big Five profile.
-
-        Args:
-            big_five_scores (dict): Any payload accepted by normalize_scores.
-            scale (str): Optional explicit input scale override.
-
-        Returns:
-            dict: Calculated LLM parameters.
-
-        Raises:
-            ScoreFormatError: if the payload carries no readable trait scores.
-        """
-        return PersonalityConverter.analyze(big_five_scores, scale)["parameters"]
-
-    @staticmethod
     def analyze(big_five_scores, scale=None):
-        """calculate_layer3_params plus the provenance of the numbers.
+        """Layer 3 behavioural parameters plus the provenance of the numbers.
+
+        Raises ScoreFormatError if the payload carries no readable trait scores.
 
         Returns a dict with "parameters", the normalised 1-5 "scores", and
         "meta" recording the scale, per-trait source and any clamping — so a
@@ -305,7 +291,7 @@ def _self_test():
         for score, (low, high) in expectations.items():
             profile = dict.fromkeys(TRAITS, NEUTRAL)
             profile[trait] = float(score)
-            got = PersonalityConverter.calculate_layer3_params(profile, scale="1-5")[param]
+            got = PersonalityConverter.analyze(profile, scale="1-5")["parameters"][param]
             status = "ok" if low <= got <= high else "FAIL"
             if status == "FAIL":
                 failures.append(f"{param} at {trait}={score}: {got} not in [{low}, {high}]")

@@ -1,0 +1,52 @@
+{
+  "scale": "0-1",
+  "summary": {
+    "openness": 0.38,
+    "conscientiousness": 0.93,
+    "extraversion": 0.2,
+    "agreeableness": 0.55,
+    "neuroticism": 0.12
+  },
+  "facets": {
+    "openness": {
+      "imagination": 0.3,
+      "artistic_interests": 0.45,
+      "emotionality": 0.3,
+      "adventurousness": 0.25,
+      "intellect": 0.7,
+      "liberalism": 0.3
+    },
+    "conscientiousness": {
+      "competence": 0.95,
+      "order": 0.95,
+      "dutifulness": 0.92,
+      "achievement_striving": 0.85,
+      "self_discipline": 0.95,
+      "deliberation": 0.96
+    },
+    "extraversion": {
+      "warmth": 0.35,
+      "gregariousness": 0.1,
+      "assertiveness": 0.45,
+      "activity": 0.25,
+      "excitement_seeking": 0.05,
+      "positive_emotionality": 0.2
+    },
+    "agreeableness": {
+      "trust": 0.4,
+      "morality": 0.9,
+      "altruism": 0.6,
+      "cooperation": 0.55,
+      "modesty": 0.6,
+      "sympathy": 0.25
+    },
+    "neuroticism": {
+      "anxiety": 0.15,
+      "anger": 0.1,
+      "depression": 0.1,
+      "self_consciousness": 0.15,
+      "immoderation": 0.1,
+      "vulnerability": 0.1
+    }
+  }
+}

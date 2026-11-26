@@ -38,6 +38,19 @@ test_blob.txt
 # a mismatch silently ignores new files in the example character on those systems.
 characters/*
 !characters/Stack_And_Dagger/
+!characters/Helena_Vos/
+!characters/Tomas_Brisa/
+# Runtime data of any character, shipped ones included: mood state, the memory
+# ledger (private: it holds what a character remembers about its user),
+# generated exports and migration backups.
+characters/*/state.json
+characters/*/memory/
+characters/*/exports/
+characters/*/*.bak
+
+# Pessoa Studio source sets: copies of the user's own source files, plus the
+# digests, graphs and word networks built from them. Private: never commit.
+prima/
 
 # Keep logo and documentation assets
 !*.png
