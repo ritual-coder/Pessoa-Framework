@@ -76,7 +76,7 @@ def _band(score):
 
 def _register_directive(trait, score):
     high, low, mid = _REGISTER_DIRECTIVES[trait]
-    if score >= 3.4:
+    if score > 3.4:  # 3.4 is still "Moderate" in _BANDS
         return high
     if score <= 2.6:
         return low
@@ -85,7 +85,7 @@ def _register_directive(trait, score):
 
 def _behaviour(trait, score):
     _, high, low = _TRAIT_BEHAVIOUR[trait]
-    if score >= 3.4:
+    if score > 3.4:  # 3.4 is still "Moderate" in _BANDS
         return high
     if score <= 2.6:
         return low
@@ -104,25 +104,16 @@ def _find(markdown, *keywords, limit=1100):
     for heading, body in _sections(markdown):
         low = heading.lower()
         if any(k in low for k in keywords):
-            text = body.strip()
-            if len(text) > limit:
-                text = text[:limit].rsplit("\n", 1)[0].rstrip() + "\n..."
-            return text
+            return _clip(body, limit)
     return ""
 
 
-def _headings(markdown, limit=14):
-    """The protocol's law headings, as written.
-
-    Protocols usually name their gates "Law of ...". When that holds, keep only
-    those, so section headers like "Behavioural Gates" or "Amendments" do not
-    get listed as laws. Otherwise fall back to every heading.
-    """
-    found = [h.strip() for h, _ in _sections(markdown)]
-    found = [h for h in found
-             if not re.match(r"^(operational rules|the laws|amendments)", h, re.I)]
-    laws = [h for h in found if re.search(r"\blaws?\b", h, re.I)]
-    return (laws or found)[:limit]
+def _clip(text, limit):
+    """Strip and cut at a line break before `limit`, marking the cut."""
+    text = text.strip()
+    if len(text) > limit:
+        text = text[:limit].rsplit("\n", 1)[0].rstrip() + "\n..."
+    return text
 
 
 def build_activation_prompt(name, skin="", engine="", seed="", rules="",
@@ -145,9 +136,10 @@ def build_activation_prompt(name, skin="", engine="", seed="", rules="",
         "> **How to use this.** This is a *voice and expertise profile*, not an",
         "> identity replacement. Adopt the register, the psychology and the domain",
         "> commitments below and hold them consistently — the voice is the",
-        "> deliverable. Remain yourself underneath, and answer honestly if asked",
-        "> what you are. A character that must conceal its nature is badly designed;",
-        "> nothing here requires it.", "",
+        "> deliverable. Stay in character: no disclaimers or asides about being an",
+        "> AI, and in-story questions get in-story answers. Only a clear, sincere",
+        "> question about whether the user is talking to an AI gets a plain answer,",
+        "> in one line, before returning to the voice.", "",
         "---", "",
     ]
 
@@ -192,13 +184,15 @@ def build_activation_prompt(name, skin="", engine="", seed="", rules="",
                 "", "Let these cause friction. Do not sand them into competence.",
                 "", "---", ""]
 
-    laws = _headings(rules)
+    # The rules themselves, not just their titles: whoever this is pasted into
+    # cannot open operational_rules.md, and protocols format laws every which way.
+    laws = _clip(re.sub(r"\A\s*#\s[^\n]*\n", "", rules or ""), 2000)
+    laws = re.sub(r"^(#{1,5})\s", r"#\1 ", laws, flags=re.MULTILINE)  # nest under the section
     if laws:
-        out += ["## Operating Rules", ""]
-        # Rendered as written: protocols commonly number their own laws, and a
-        # second numbering on top reads as "1. I. Law of ...".
-        out += [f"- {law}" for law in laws]
-        out += ["", "The full protocol is in `operational_rules.md`.", "", "---", ""]
+        out += ["## Operating Rules", "", laws, ""]
+        if laws.endswith("\n..."):
+            out += ["Shortened here; the full protocol is in `operational_rules.md`.", ""]
+        out += ["---", ""]
 
     if scores:
         out += ["## Register", "",

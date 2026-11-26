@@ -8,6 +8,7 @@ safe_character_dir(), which refuses paths that escape the characters directory.
 
 import os
 import re
+import unicodedata
 
 DEFAULT_NAME = "New_Heteronym"
 MAX_NAME_LENGTH = 64
@@ -52,6 +53,9 @@ def sanitize_heteronym_name(raw, default=DEFAULT_NAME):
     for token in ("**", "*", "`"):  # underscores are legitimate inside names
         text = text.replace(token, "")
 
+    # "Tomás" -> "Tomas", "Dvořák" -> "Dvorak": drop accents rather than
+    # whole letters. Letters with no ASCII base (Greek, Cyrillic) still go below.
+    text = "".join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c))
     text = text.replace(" ", "_")
     text = _UNSAFE_RE.sub("_", text)
     text = re.sub(r"_{2,}", "_", text).strip("_-")
@@ -79,7 +83,8 @@ def derive_heteronym_name(skin_content, default=DEFAULT_NAME):
 def _name_candidates(skin_content):
     """Yield raw name candidates from a Skin, best first."""
     for match in _FIELD_RE.finditer(skin_content):
-        yield match.group(1)
+        # "Mara Quell (Otto says ...)": the note is not part of the name.
+        yield _TRAILING_PARENS_RE.sub("", match.group(1))
 
     heading = _H1_RE.search(skin_content)
     if heading:

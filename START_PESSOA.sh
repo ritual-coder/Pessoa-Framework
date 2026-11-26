@@ -19,6 +19,8 @@ find_python() {
     done
 }
 
+# Everything before the exec goes to stderr: when an MCP client launches this
+# script, stdout is the protocol stream and any stray line corrupts it.
 # 1. Setup Environment
 if [ ! -d "venv" ]; then
     PY="$(find_python)"
@@ -27,12 +29,19 @@ if [ ! -d "venv" ]; then
         echo "Install one, or set PYTHON_BIN=/path/to/python3 and re-run." >&2
         exit 1
     fi
-    echo "Creating virtual environment with $PY ($("$PY" -V 2>&1))..."
-    "$PY" -m venv venv
-    ./venv/bin/pip install --upgrade pip
-    ./venv/bin/pip install -r requirements.txt
+    echo "Creating virtual environment with $PY ($("$PY" -V 2>&1))..." >&2
+    "$PY" -m venv venv >&2
+    ./venv/bin/pip install --upgrade pip >&2
+    ./venv/bin/pip install -r requirements.txt >&2
+fi
+
+# An existing venv can predate requirements.txt: v1.1.0 installed mcp 1.x, which
+# lacks the mcp 2.x server API. Reinstall whenever the server's imports fail.
+if ! ./venv/bin/python3 -c 'import mcp.server.mcpserver, yaml, pypdf' 2>/dev/null; then
+    echo "Dependencies are out of date; updating from requirements.txt..." >&2
+    ./venv/bin/pip install -r requirements.txt >&2
 fi
 
 # 2. Start MCP Bridge
-echo "Starting Pessoa Framework Bridge..."
+echo "Starting Pessoa Framework Bridge..." >&2
 exec ./venv/bin/python3 core/base_server.py

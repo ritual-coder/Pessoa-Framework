@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import shutil
 
 # The core modules live in ../core. Callers that import this module normally set
 # the path up first, but doing it here too means the script also runs directly.
@@ -14,6 +15,28 @@ import yaml  # noqa: E402
 from activation import build_activation_prompt  # noqa: E402
 from converter import NEUTRAL, PersonalityConverter  # noqa: E402
 from naming import safe_character_dir, sanitize_heteronym_name  # noqa: E402
+from validate import SCHEMA_VERSION  # noqa: E402
+
+def build_cabinet(name, calculus):
+    """The ai_cabinet.yaml mapping for a calculus result (shared with scripts/migrate.py)."""
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "name": name,
+        "parameters": calculus["parameters"],
+        # The 1-5 scores the parameters were actually derived from, so a
+        # cabinet can be audited against the profile that produced it.
+        "big_five_normalized": calculus["scores"],
+        "calculus": calculus["meta"],
+        "system_prompt_architecture": {
+            "identity_anchor": "Distilled from engine.md and skin.md",
+            "personality_profile": "Calculated from Big Five scores",
+            "communication_style": "Defined by Skin voice patterns",
+            "capabilities_expertise": "Defined by the Seed",
+            "boundaries_constraints": "Defined by the Shadow/Fear in engine.md"
+        },
+        "status": "ready"
+    }
+
 
 def create_heteronym(name, engine_content, big_five_scores, skin_content=None,
                      seed_content=None, rules_content=None, activation_content=None):
@@ -39,73 +62,72 @@ def create_heteronym(name, engine_content, big_five_scores, skin_content=None,
     # Determine target directory relative to this script
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     char_dir = safe_character_dir(os.path.join(BASE_DIR, "characters"), name)
-    os.makedirs(char_dir, exist_ok=True)
+    # Never write into an existing character: the layers below are written
+    # selectively, so reusing a folder would mix two characters and lose edits.
+    try:
+        os.makedirs(char_dir)
+    except FileExistsError:
+        raise FileExistsError(
+            f"Heteronym '{name}' already exists at {char_dir}. "
+            "Choose another name, or delete that folder first."
+        ) from None
 
-    # 1. Save Engine (Layer 1)
-    with open(os.path.join(char_dir, "engine.md"), "w") as f:
-        f.write(engine_content)
+    # A failed write must not leave a half-built folder: the check above would
+    # then block every retry under this name.
+    try:
+        # 1. Save Engine (Layer 1)
+        with open(os.path.join(char_dir, "engine.md"), "w", encoding="utf-8") as f:
+            f.write(engine_content)
 
-    # 2. Save Big Five Scores (Layer 1)
-    with open(os.path.join(char_dir, "big_five.json"), "w") as f:
-        json.dump(big_five_scores, f, indent=2)
+        # 2. Save Big Five Scores (Layer 1)
+        with open(os.path.join(char_dir, "big_five.json"), "w", encoding="utf-8") as f:
+            json.dump(big_five_scores, f, indent=2)
 
-    # 3. Save AI Cabinet (Layer 3)
-    # Build the 5-Pillar System Prompt Architecture
-    ai_cabinet = {
-        "name": name,
-        "parameters": params,
-        # The 1-5 scores the parameters were actually derived from, so a
-        # cabinet can be audited against the profile that produced it.
-        "big_five_normalized": calculus["scores"],
-        "calculus": calculus["meta"],
-        "system_prompt_architecture": {
-            "identity_anchor": "Distilled from engine.md and skin.md",
-            "personality_profile": "Calculated from Big Five scores",
-            "communication_style": "Defined by Skin voice patterns",
-            "capabilities_expertise": "Defined by the Seed",
-            "boundaries_constraints": "Defined by the Shadow/Fear in engine.md"
-        },
-        "status": "ready"
-    }
+        # 3. Save AI Cabinet (Layer 3)
+        ai_cabinet = build_cabinet(name, calculus)
     
-    with open(os.path.join(char_dir, "ai_cabinet.yaml"), "w") as f:
-        yaml.dump(ai_cabinet, f, sort_keys=False)
+        with open(os.path.join(char_dir, "ai_cabinet.yaml"), "w", encoding="utf-8") as f:
+            yaml.dump(ai_cabinet, f, sort_keys=False)
         
-    # 4. Save Skin (Layer 1)
-    if skin_content:
-        with open(os.path.join(char_dir, "skin.md"), "w") as f:
-            f.write(skin_content)
+        # 4. Save Skin (Layer 1)
+        if skin_content:
+            with open(os.path.join(char_dir, "skin.md"), "w", encoding="utf-8") as f:
+                f.write(skin_content)
 
-    # 5. Save Seed (Layer 2)
-    if seed_content:
-        with open(os.path.join(char_dir, "seed.md"), "w") as f:
-            f.write(seed_content)
+        # 5. Save Seed (Layer 2)
+        if seed_content:
+            with open(os.path.join(char_dir, "seed.md"), "w", encoding="utf-8") as f:
+                f.write(seed_content)
 
-    # 6. Save Protocol (Layer 3) when supplied, so the activation prompt below
-    # can distil it. Callers that write it themselves may omit it.
-    if rules_content:
-        with open(os.path.join(char_dir, "operational_rules.md"), "w") as f:
-            f.write(rules_content)
+        # 6. Save Protocol (Layer 3) when supplied, so the activation prompt below
+        # can distil it. Callers that write it themselves may omit it.
+        if rules_content:
+            with open(os.path.join(char_dir, "operational_rules.md"), "w", encoding="utf-8") as f:
+                f.write(rules_content)
 
-    # 7. Activation prompt: the pasteable artifact. An authored version always
-    # wins; otherwise compose one from the layers so no character ships without.
-    if not activation_content:
-        activation_content = build_activation_prompt(
-            name=name,
-            skin=skin_content or "",
-            engine=engine_content or "",
-            seed=seed_content or "",
-            rules=rules_content or "",
-            scores=calculus["scores"],
-            parameters=params,
-        )
-    with open(os.path.join(char_dir, "ACTIVATION_PROMPT.md"), "w") as f:
-        f.write(activation_content)
+        # 7. Activation prompt: the pasteable artifact. An authored version always
+        # wins; otherwise compose one from the layers so no character ships without.
+        if not activation_content:
+            activation_content = build_activation_prompt(
+                name=name,
+                skin=skin_content or "",
+                engine=engine_content or "",
+                seed=seed_content or "",
+                rules=rules_content or "",
+                scores=calculus["scores"],
+                parameters=params,
+            )
+        with open(os.path.join(char_dir, "ACTIVATION_PROMPT.md"), "w", encoding="utf-8") as f:
+            f.write(activation_content)
+    except BaseException:
+        shutil.rmtree(char_dir, ignore_errors=True)
+        raise
 
     print(f"Heteronym '{name}' created successfully in {char_dir}")
     meta = calculus["meta"]
     scale_note = "declared" if meta["scale_declared"] else "inferred"
     print(f"Big Five ({meta['scale']} scale, {scale_note}) -> {calculus['scores']}")
+    print(f"Score sources: {meta['sources']}")
     if meta["missing_traits"]:
         print(f"WARNING: no score found for {', '.join(meta['missing_traits'])}; "
               f"used neutral {NEUTRAL}. Check big_five.json.")

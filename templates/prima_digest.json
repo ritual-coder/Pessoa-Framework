@@ -1,0 +1,38 @@
+{
+  "_instructions": [
+    "Prima Materia digest: a semantic graph of ONE subject, written once from the full source text.",
+    "nodes: people, places, objects, fears, obsessions, themes and traits that matter to the subject.",
+    "edges: how two nodes relate ('loves', 'fears', 'lives in', 'distrusts'), from the subject's point of view where possible.",
+    "evidence: 1-3 SHORT verbatim quotes (one sentence or less) with a location. Copy them exactly: every quote is checked against the source, and quotes the text does not contain are reported.",
+    "voice_samples: 5-10 short lines of the subject's own speech or inner voice, verbatim.",
+    "Keep quotes short and few: this is a map with landmarks, not a copy of the text.",
+    "Save it with save_prima_digest(digest). Later creation runs read it with fetch_prima_digest()."
+  ],
+  "subject": "Mara Quell",
+  "source": "Title and author of the source text",
+  "nodes": [
+    {
+      "id": "mara",
+      "type": "person",
+      "label": "Mara Quell",
+      "summary": "One-line description of the subject.",
+      "evidence": [{ "quote": "exact short quote", "where": "ch. 1" }]
+    },
+    {
+      "id": "lighthouse",
+      "type": "place",
+      "label": "Gull Point lighthouse",
+      "summary": "Why it matters to the subject.",
+      "evidence": [{ "quote": "exact short quote", "where": "ch. 1" }]
+    }
+  ],
+  "edges": [
+    {
+      "from": "mara",
+      "to": "lighthouse",
+      "relation": "keeps the lamp of",
+      "evidence": [{ "quote": "exact short quote", "where": "ch. 1" }]
+    }
+  ],
+  "voice_samples": [{ "quote": "exact short line in the subject's voice", "where": "ch. 2" }]
+}

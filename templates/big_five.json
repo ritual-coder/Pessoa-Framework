@@ -2,9 +2,14 @@
     "_instructions": [
         "Layer 1 facet scoring sheet. Replace every null with a number.",
         "'scale' declares how to read those numbers: '0-1', '1-5' or '0-100'.",
-        "'summary' holds the five trait scores and is what drives the AI Cabinet math.",
-        "'facets' is the 30-facet detail. A trait left null in 'summary' falls back",
-        "to the mean of its facets, so you may fill either block or both.",
+        "'facets' is the 30-facet judgement, and it is what counts: at hydration each trait's",
+        "summary is set to the mean of its six facets (your written summary is kept as",
+        "'summary_written' when it differs). Fill 'summary' too; a trait with an unscored",
+        "facet keeps the summary you wrote.",
+        "'evidence' gives each facet a one-line 'reason' (what in the Skin or source shows it)",
+        "and, when there is source material, a short verbatim 'quote' (one sentence or less).",
+        "Quotes are checked against the source at hydration; leave 'quote' null rather than",
+        "inventing one. A facet without a reason is reported by the validator.",
         "An unfilled sheet is rejected by the converter rather than scored as neutral."
     ],
     "scale": "0-1",
@@ -55,6 +60,138 @@
             "self_consciousness": null,
             "immoderation": null,
             "vulnerability": null
+        }
+    },
+    "evidence": {
+        "openness": {
+            "imagination": {
+                "reason": null,
+                "quote": null
+            },
+            "artistic_interests": {
+                "reason": null,
+                "quote": null
+            },
+            "emotionality": {
+                "reason": null,
+                "quote": null
+            },
+            "adventurousness": {
+                "reason": null,
+                "quote": null
+            },
+            "intellect": {
+                "reason": null,
+                "quote": null
+            },
+            "liberalism": {
+                "reason": null,
+                "quote": null
+            }
+        },
+        "conscientiousness": {
+            "competence": {
+                "reason": null,
+                "quote": null
+            },
+            "order": {
+                "reason": null,
+                "quote": null
+            },
+            "dutifulness": {
+                "reason": null,
+                "quote": null
+            },
+            "achievement_striving": {
+                "reason": null,
+                "quote": null
+            },
+            "self_discipline": {
+                "reason": null,
+                "quote": null
+            },
+            "deliberation": {
+                "reason": null,
+                "quote": null
+            }
+        },
+        "extraversion": {
+            "warmth": {
+                "reason": null,
+                "quote": null
+            },
+            "gregariousness": {
+                "reason": null,
+                "quote": null
+            },
+            "assertiveness": {
+                "reason": null,
+                "quote": null
+            },
+            "activity": {
+                "reason": null,
+                "quote": null
+            },
+            "excitement_seeking": {
+                "reason": null,
+                "quote": null
+            },
+            "positive_emotionality": {
+                "reason": null,
+                "quote": null
+            }
+        },
+        "agreeableness": {
+            "trust": {
+                "reason": null,
+                "quote": null
+            },
+            "morality": {
+                "reason": null,
+                "quote": null
+            },
+            "altruism": {
+                "reason": null,
+                "quote": null
+            },
+            "cooperation": {
+                "reason": null,
+                "quote": null
+            },
+            "modesty": {
+                "reason": null,
+                "quote": null
+            },
+            "sympathy": {
+                "reason": null,
+                "quote": null
+            }
+        },
+        "neuroticism": {
+            "anxiety": {
+                "reason": null,
+                "quote": null
+            },
+            "anger": {
+                "reason": null,
+                "quote": null
+            },
+            "depression": {
+                "reason": null,
+                "quote": null
+            },
+            "self_consciousness": {
+                "reason": null,
+                "quote": null
+            },
+            "immoderation": {
+                "reason": null,
+                "quote": null
+            },
+            "vulnerability": {
+                "reason": null,
+                "quote": null
+            }
         }
     }
 }
